@@ -1,58 +1,79 @@
 - rule: Malicious File Access
   desc: detect access to sensitive files in containers
-  condition: container.id != host and evt.type=openat and (fd.name contains "/etc/shadow" or fd.name contains "/etc/passwd" or fd.name contains ".env" or fd.name contains "credentials" or fd.name contains "id_rsa")
+  condition: container.id != host and evt.type=openat and (fd.name contains "/etc/shadow" or fd.name contains "/etc/passwd" or fd.name contains ".env" or fd.name contains "credentials" or fd.name contains "id_rsa" or fd.name contains "kubelet" or fd.name contains "serviceaccount")
   output: "Sensitive file access (user=%user.name container=%container.id file=%fd.name proc=%proc.name)"
   priority: CRITICAL
   tags: [credential_access, T1003.001]
 
 - rule: Reverse Shell Detection
-  desc: detect reverse shell via bash/tcp device
-  condition: container.id != host and evt.type in (connect, execve) and proc.name in (bash, sh, nc, ncat, python, perl, php, socat) and fd.name contains /tcp
+  desc: detect reverse shell via bash/tcp/netcat
+  condition: container.id != host and evt.type in (connect, execve) and proc.name in (bash, sh, nc, ncat, python, perl, php, socat) and (fd.name contains /tcp or fd.name contains /udp)
   output: "Reverse shell detected (container=%container.id process=%proc.name pid=%proc.pid)"
   priority: CRITICAL
   tags: [execution, T1059.004]
 
-- rule: Container Escape
-  desc: detect container escape via syscalls
-  condition: container.id != host and evt.type in (mount, unshare, clone3, pivot_root)
-  output: "Container escape attempt (container=%container.id proc=%proc.name syscall=%evt.type)"
+- rule: Container Escape via Mount
+  desc: detect mount-based container escape attempts
+  condition: container.id != host and evt.type in (mount, umount) and (evt.arg.fstype contains cgroup or evt.arg.fstype contains proc or evt.arg.fstype contains sysfs or evt.arg.fstype contains bpf)
+  output: "Container escape via mount (container=%container.id proc=%proc.name fstype=%evt.arg.fstype)"
   priority: CRITICAL
   tags: [privilege_escalation, T1611]
 
-- rule: Crypto Mining
-  desc: detect crypto miners by process name or ports
-  condition: container.id != host and (proc.name in (xmrig, miner, cpuminer, lolminer, ccminer, ethminer) or (evt.type=connect and fd.sport in (3333, 3334, 4444, 5555, 13333, 14444, 18081)))
-  output: "Crypto miner detected (container=%container.id proc=%proc.name pid=%proc.pid)"
-  priority: HIGH
-  tags: [impact, T1496]
-
-- rule: Network Scan
-  desc: detect rapid connection attempts (port scanning)
-  condition: container.id != host and evt.type=connect and evt.count>50 in 10s
-  output: "Network scan detected (container=%container.id count=%evt.count)"
-  priority: MEDIUM
-  tags: [discovery, T1046]
-
-- rule: Privileged Container
-  desc: detect privileged containers
-  condition: container.id != host and container.privileged=true
-  output: "Privileged container running (container=%container.id image=%container.image)"
-  priority: HIGH
+- rule: Container Namespace Escape
+  desc: detect nsenter usage for namespace escape
+  condition: container.id != host and proc.name=nsenter and evt.type=execve
+  output: "Namespace escape via nsenter (container=%container.id proc=%proc.name pid=%proc.pid)"
+  priority: CRITICAL
   tags: [privilege_escalation, T1611]
 
-- rule: Process Injection
-  desc: detect ptrace-based injection
+- rule: Cgroup Release Agent Escape
+  desc: detect cgroup notify_on_release exploitation
+  condition: container.id != host and evt.type=openat and (fd.name contains "release_agent" or fd.name contains "notify_on_release")
+  output: "Cgroup escape attempt (container=%container.id proc=%proc.name file=%fd.name)"
+  priority: CRITICAL
+  tags: [privilege_escalation, T1611]
+
+- rule: Process Injection via ptrace
+  desc: detect ptrace-based process injection
   condition: container.id != host and evt.type=ptrace and evt.arg.op=POKE
-  output: "Process injection detected (container=%container.id proc=%proc.name pid=%proc.pid)"
+  output: "Process injection via ptrace (container=%container.id proc=%proc.name pid=%proc.pid)"
   priority: CRITICAL
   tags: [defense_evasion, T1055]
 
-- rule: Web Shell
-  desc: detect webshell process spawn from web server
-  condition: container.id != host and evt.type=execve and proc.pname in (apache2, httpd, nginx, php-fpm) and proc.name in (bash, sh, python, perl, php, nc, curl, wget)
-  output: "Web shell activity (container=%container.id proc=%proc.name parent=%proc.pname)"
+- rule: LD_PRELOAD Runtime Hooking
+  desc: detect LD_PRELOAD usage for syscall hooking
+  condition: container.id != host and evt.type=execve and (proc.env contains LD_PRELOAD or proc.cmdline contains LD_PRELOAD)
+  output: "LD_PRELOAD runtime hook (container=%container.id proc=%proc.name cmdline=%proc.cmdline)"
   priority: HIGH
-  tags: [persistence, T1505.003]
+  tags: [defense_evasion, T1055.001]
+
+- rule: memfd_create Fileless Execution
+  desc: detect fileless malware via memfd_create
+  condition: container.id != host and evt.type=memfd_create
+  output: "Fileless execution via memfd (container=%container.id proc=%proc.name)"
+  priority: CRITICAL
+  tags: [defense_evasion, T1055]
+
+- rule: Capability Abuse - SYS_ADMIN
+  desc: detect containers using SYS_ADMIN capability for escape
+  condition: container.id != host and evt.type=execve and proc.name in (nsenter, unshare, mount) and container.capabilities contains SYS_ADMIN
+  output: "SYS_ADMIN capability abuse (container=%container.id proc=%proc.name)"
+  priority: HIGH
+  tags: [privilege_escalation, T1611]
+
+- rule: Raw Socket Creation
+  desc: detect raw socket creation for ARP spoofing or packet crafting
+  condition: container.id != host and evt.type=socket and evt.arg.type=SOCK_RAW
+  output: "Raw socket created (container=%container.id proc=%proc.name)"
+  priority: HIGH
+  tags: [network_attack, T1557.002]
+
+- rule: chattr Immutable File
+  desc: detect chattr +i usage to lock files
+  condition: container.id != host and evt.type=chattr and evt.arg.immutable=true
+  output: "Immutable file attribute set (container=%container.id proc=%proc.name file=%fd.name)"
+  priority: MEDIUM
+  tags: [defense_evasion, T1562.001]
 
 - rule: Cron Job Modification
   desc: detect cron job creation in containers
@@ -61,16 +82,51 @@
   priority: HIGH
   tags: [persistence, T1053.003]
 
-- rule: Suspicious Proc Name
+- rule: Web Shell
+  desc: detect webshell process spawn from web server
+  condition: container.id != host and evt.type=execve and proc.pname in (apache2, httpd, nginx, php-fpm) and proc.name in (bash, sh, python, perl, php, nc, curl, wget)
+  output: "Web shell activity (container=%container.id proc=%proc.name parent=%proc.pname)"
+  priority: HIGH
+  tags: [persistence, T1505.003]
+
+- rule: Suspicious Proc Name Masquerading
   desc: detect processes masquerading as kernel threads
-  condition: container.id != host and proc.name in (kworker, [kworker], [netlink], [kthrotld], kdevtmpfs)
+  condition: container.id != host and proc.name in (kworker, [kworker], [netlink], [kthrotld], kdevtmpfs, [kacpi])
   output: "Suspicious kernel-masquerading process (container=%container.id proc=%proc.name pid=%proc.pid)"
   priority: HIGH
   tags: [defense_evasion, T1036]
 
-- rule: Privilege Escalation
+- rule: Privilege Escalation via chmod/chown
   desc: detect chmod/chown on sensitive binaries
   condition: container.id != host and evt.type in (chmod, chown) and (fd.name contains "/bin" or fd.name contains "/sbin" or fd.name contains "/usr/bin")
   output: "Privilege escalation attempt (container=%container.id proc=%proc.name file=%fd.name)"
   priority: HIGH
   tags: [privilege_escalation, T1548]
+
+- rule: Link /proc/self/fd Traversal
+  desc: detect runc FD leak exploitation (CVE-2024-21626 style)
+  condition: container.id != host and evt.type=openat and fd.name startswith /proc/self/fd/ and (fd.name contains ../.. or fd.name contains ../../)
+  output: "Proc FD traversal detected (container=%container.id proc=%proc.name file=%fd.name)"
+  priority: CRITICAL
+  tags: [privilege_escalation, T1611]
+
+- rule: CAP_SYS_PTRACE Usage
+  desc: detect ptrace attachment attempts
+  condition: container.id != host and evt.type=ptrace and evt.arg.op=ATTACH
+  output: "Ptrace attach attempt (container=%container.id proc=%proc.name pid=%proc.pid target=%evt.arg.pid)"
+  priority: HIGH
+  tags: [credential_access, T1055.008]
+
+- rule: OverlayFS Mount
+  desc: detect overlay filesystem mounting inside container
+  condition: container.id != host and evt.type=mount and evt.arg.fstype=overlay
+  output: "OverlayFS mount inside container (container=%container.id proc=%proc.name)"
+  priority: MEDIUM
+  tags: [privilege_escalation, T1548]
+
+- rule: DNS Query to Suspicious Domain
+  desc: detect DNS queries to potential C2 domains
+  condition: container.id != host and evt.type in (sendto, connect) and fd.lport=53 and (fd.name contains .exfil or fd.name contains .c2 or fd.name contains .tunnel or fd.sip in (known_malicious_ips))
+  output: "Suspicious DNS query (container=%container.id proc=%proc.name domain=%fd.name)"
+  priority: HIGH
+  tags: [command_and_control, T1572]

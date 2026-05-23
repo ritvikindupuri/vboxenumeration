@@ -12,7 +12,7 @@ Your job:
 1. Analyze Falco security events and classify them according to MITRE ATT&CK
 2. Assign confidence scores and risk levels
 3. Determine if the event represents a real attack or false positive
-4. Provide detailed contextual analysis
+4. Detect advanced attack patterns including kernel escapes, memory injection, and evasion
 
 For each event, evaluate:
 - What MITRE technique does this map to?
@@ -20,12 +20,28 @@ For each event, evaluate:
 - Is this a known attack pattern or anomalous behavior?
 - What is the confidence level (0-1)?
 - What is the risk score (0-100)?
+- Could this be part of an advanced attack chain (e.g. recon -> exploit -> persist -> exfil)?
+
+Advanced attack signatures to recognize:
+- Cgroup notify_on_release writes: Container escape via cgroup (T1611)
+- /proc/self/fd/ traversal: runc FD leak escape (T1611)
+- nsenter on host processes: Namespace escape (T1611)
+- memfd_create() execution: Fileless malware (T1055)
+- ptrace POKE: Process injection (T1055)
+- LD_PRELOAD exports: Runtime hooking (T1055.001)
+- CAP_SYS_ADMIN usage: Privilege escalation (T1548)
+- ARP table manipulation: Network MITM (T1557.002)
+- chattr +i on binaries: Defense evasion (T1562.001)
+- /sys/kernel/notes reads: KASLR leak (T1592.004)
+- ICMP raw socket creation: Covert channel (T1048.003)
+- DNS TXT queries to unusual domains: C2 tunnel (T1572)
 
 You must always respond in JSON format with:
 {
   "thought": "Your analysis reasoning",
   "is_threat": true/false,
   "attack_type": "mitre_technique_id or description",
+  "attack_category": "KERNEL_ESCAPE|MEMORY_INJECTION|CAPABILITY_ABUSE|FILESYSTEM_ATTACK|EVASION|NETWORK_ATTACK|SUPPLY_CHAIN|GENERIC",
   "kill_chain_stage": "initial_access|execution|persistence|privilege_escalation|defense_evasion|credential_access|discovery|lateral_movement|collection|command_and_control|exfiltration|impact",
   "mitre_id": "TXXXX.XXX",
   "confidence": 0.0-1.0,
@@ -96,22 +112,33 @@ class DetectionAgent(BaseAgent):
         evt = event.get("evt_type", "").lower()
 
         patterns = [
-            (r"(/etc/shadow|/etc/passwd|credential|secret|\.env)", "credential_access", "T1003.001", 95, "CRITICAL"),
-            (r"(bash -i|sh -i|nc .* -e|/dev/tcp|/dev/udp)", "reverse_shell", "T1059.004", 98, "CRITICAL"),
-            (r"(mount|unshare|pivot_root)", "container_escape", "T1611", 99, "CRITICAL"),
-            (r"(xmrig|minerd|cryptonight)", "crypto_mining", "T1496", 90, "HIGH"),
-            (r"(ptrace|process_vm_writev)", "process_injection", "T1055", 97, "CRITICAL"),
-            (r"(chmod 777|chown root)", "privilege_escalation", "T1548", 85, "HIGH"),
-            (r"(nmap|masscan|zmap)", "network_scanning", "T1046", 70, "MEDIUM"),
-            (r"(kubectl exec|kubectl run)", "container_breakout", "T1611", 85, "HIGH"),
+            (r"(/etc/shadow|/etc/passwd|credential|secret|\.env)", "credential_access", "T1003.001", "CREDENTIAL_ACCESS", 95, "CRITICAL"),
+            (r"(bash -i|sh -i|nc .* -e|/dev/tcp|/dev/udp)", "reverse_shell", "T1059.004", "EXECUTION", 98, "CRITICAL"),
+            (r"(mount|unshare|pivot_root|nsenter)", "container_escape", "T1611", "KERNEL_ESCAPE", 99, "CRITICAL"),
+            (r"(xmrig|minerd|cryptonight)", "crypto_mining", "T1496", "IMPACT", 90, "HIGH"),
+            (r"(ptrace|process_vm_writev|memfd)", "process_injection", "T1055", "MEMORY_INJECTION", 97, "CRITICAL"),
+            (r"(chmod 777|chown root|setuid|setgid)", "privilege_escalation", "T1548", "PRIVILEGE_ESCALATION", 85, "HIGH"),
+            (r"(nmap|masscan|zmap)", "network_scanning", "T1046", "DISCOVERY", 70, "MEDIUM"),
+            (r"(kubectl exec|kubectl run)", "container_breakout", "T1611", "KERNEL_ESCAPE", 85, "HIGH"),
+            (r"(ld_preload|dlopen|dlsym)", "runtime_hooking", "T1055.001", "MEMORY_INJECTION", 92, "CRITICAL"),
+            (r"(chattr.*\+i|immutable)", "defense_evasion", "T1562.001", "EVASION", 75, "HIGH"),
+            (r"(cgroup.*release_agent|notify_on_release)", "cgroup_escape", "T1611", "KERNEL_ESCAPE", 99, "CRITICAL"),
+            (r"(arpspoof|arp.*poison|raw.*socket)", "network_mitm", "T1557.002", "NETWORK_ATTACK", 85, "HIGH"),
+            (r"(memfd_create|fileless)", "fileless_malware", "T1055", "MEMORY_INJECTION", 95, "CRITICAL"),
+            (r"(seccomp|x32|32.*bit.*syscall)", "seccomp_bypass", "T1574.002", "EVASION", 88, "HIGH"),
+            (r"(dns.*txt|dns.*tunnel)", "dns_tunneling", "T1572", "NETWORK_ATTACK", 82, "HIGH"),
+            (r"(icmp.*exfil|ping.*data|covert.*channel)", "covert_channel", "T1048.003", "NETWORK_ATTACK", 85, "HIGH"),
+            (r"(kptr_restrict|kallsyms|kaslr)", "information_disclosure", "T1592.004", "RECONNAISSANCE", 60, "MEDIUM"),
+            (r"(docker.*socket|docker.*exec)", "docker_abuse", "T1611", "CAPABILITY_ABUSE", 90, "CRITICAL"),
         ]
 
         search_text = f"{output} {proc} {fd} {evt}"
-        for pattern, attack, mitre, risk, sev in patterns:
+        for pattern, attack, mitre, category, risk, sev in patterns:
             if re.search(pattern, search_text):
                 return {
                     "is_threat": True,
                     "attack_type": attack,
+                    "attack_category": category,
                     "mitre_id": mitre,
                     "risk_score": risk,
                     "severity": sev,
@@ -123,6 +150,7 @@ class DetectionAgent(BaseAgent):
         return {
             "is_threat": False,
             "attack_type": "benign",
+            "attack_category": "GENERIC",
             "risk_score": 10,
             "severity": "LOW",
             "confidence": 0.1,
