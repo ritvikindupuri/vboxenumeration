@@ -14,7 +14,7 @@ class Settings:
     ES_USERNAME: str = os.getenv("ES_USERNAME", "elastic")
     ES_PASSWORD: str = os.getenv("ES_PASSWORD", "")
     ES_HOST: str = os.getenv("ES_HOST", "https://localhost:9200")
-    ES_INDEX_PREFIX: str = os.getenv("ES_INDEX_PREFIX", "falcoshield")
+    ES_INDEX_PREFIX: str = os.getenv("ES_INDEX_PREFIX", "argus")
 
     FALCO_GRPC_HOST: str = os.getenv("FALCO_GRPC_HOST", "localhost")
     FALCO_GRPC_PORT: int = int(os.getenv("FALCO_GRPC_PORT", "5060"))

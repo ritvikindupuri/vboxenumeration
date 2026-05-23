@@ -6,7 +6,7 @@ from agents.base_agent import BaseAgent
 
 logger = logging.getLogger(__name__)
 
-ORCHESTRATOR_SYSTEM_PROMPT = """You are the Orchestrator Agent for an AI-powered Container Security Platform (FalcoShield SOC).
+ORCHESTRATOR_SYSTEM_PROMPT = """You are the Orchestrator Agent for an AI-powered Container Security Platform (Argus SOC).
 
 Your responsibilities:
 1. Coordinate all other agents (Detection, Response, Attack, Reporting)
