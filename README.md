@@ -64,6 +64,12 @@
 | Network Scan | T1046 | ISOLATE | MEDIUM |
 | Cron Persistence | T1053.003 | BLOCK | HIGH |
 
+## One-Command Shutdown
+```powershell
+.\shutdown.ps1                    # With confirmation prompt
+.\shutdown.ps1 -Force             # Skip confirmation
+```
+
 ## Quick Start
 
 ### Prerequisites

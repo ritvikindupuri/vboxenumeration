@@ -1,3 +1,5 @@
-docker stop honeypot-web honeypot-redis honeypot-python soc-falco 2>$null
-docker rm honeypot-web honeypot-redis honeypot-python soc-falco 2>$null
-Write-Host "Cleaned up all containers" -ForegroundColor Green
+docker stop $(docker ps -q -f "name=falco") 2>$null
+docker stop $(docker ps -q -f "name=honeypot") 2>$null
+docker stop $(docker ps -q -f "name=soc-") 2>$null
+docker system prune -f 2>$null
+Write-Host "FalcoHive stopped & cleaned" -ForegroundColor Green
