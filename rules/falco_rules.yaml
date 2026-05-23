@@ -1,0 +1,76 @@
+- rule: Malicious File Access
+  desc: detect access to sensitive files in containers
+  condition: container.id != host and evt.type=openat and (fd.name contains "/etc/shadow" or fd.name contains "/etc/passwd" or fd.name contains ".env" or fd.name contains "credentials" or fd.name contains "id_rsa")
+  output: "Sensitive file access (user=%user.name container=%container.id file=%fd.name proc=%proc.name)"
+  priority: CRITICAL
+  tags: [credential_access, T1003.001]
+
+- rule: Reverse Shell Detection
+  desc: detect reverse shell via bash/tcp device
+  condition: container.id != host and evt.type in (connect, execve) and proc.name in (bash, sh, nc, ncat, python, perl, php, socat) and fd.name contains /tcp
+  output: "Reverse shell detected (container=%container.id process=%proc.name pid=%proc.pid)"
+  priority: CRITICAL
+  tags: [execution, T1059.004]
+
+- rule: Container Escape
+  desc: detect container escape via syscalls
+  condition: container.id != host and evt.type in (mount, unshare, clone3, pivot_root)
+  output: "Container escape attempt (container=%container.id proc=%proc.name syscall=%evt.type)"
+  priority: CRITICAL
+  tags: [privilege_escalation, T1611]
+
+- rule: Crypto Mining
+  desc: detect crypto miners by process name or ports
+  condition: container.id != host and (proc.name in (xmrig, miner, cpuminer, lolminer, ccminer, ethminer) or (evt.type=connect and fd.sport in (3333, 3334, 4444, 5555, 13333, 14444, 18081)))
+  output: "Crypto miner detected (container=%container.id proc=%proc.name pid=%proc.pid)"
+  priority: HIGH
+  tags: [impact, T1496]
+
+- rule: Network Scan
+  desc: detect rapid connection attempts (port scanning)
+  condition: container.id != host and evt.type=connect and evt.count>50 in 10s
+  output: "Network scan detected (container=%container.id count=%evt.count)"
+  priority: MEDIUM
+  tags: [discovery, T1046]
+
+- rule: Privileged Container
+  desc: detect privileged containers
+  condition: container.id != host and container.privileged=true
+  output: "Privileged container running (container=%container.id image=%container.image)"
+  priority: HIGH
+  tags: [privilege_escalation, T1611]
+
+- rule: Process Injection
+  desc: detect ptrace-based injection
+  condition: container.id != host and evt.type=ptrace and evt.arg.op=POKE
+  output: "Process injection detected (container=%container.id proc=%proc.name pid=%proc.pid)"
+  priority: CRITICAL
+  tags: [defense_evasion, T1055]
+
+- rule: Web Shell
+  desc: detect webshell process spawn from web server
+  condition: container.id != host and evt.type=execve and proc.pname in (apache2, httpd, nginx, php-fpm) and proc.name in (bash, sh, python, perl, php, nc, curl, wget)
+  output: "Web shell activity (container=%container.id proc=%proc.name parent=%proc.pname)"
+  priority: HIGH
+  tags: [persistence, T1505.003]
+
+- rule: Cron Job Modification
+  desc: detect cron job creation in containers
+  condition: container.id != host and evt.type in (openat, write) and (fd.name contains "crontab" or fd.name contains "cron.d")
+  output: "Cron job modified (container=%container.id proc=%proc.name)"
+  priority: HIGH
+  tags: [persistence, T1053.003]
+
+- rule: Suspicious Proc Name
+  desc: detect processes masquerading as kernel threads
+  condition: container.id != host and proc.name in (kworker, [kworker], [netlink], [kthrotld], kdevtmpfs)
+  output: "Suspicious kernel-masquerading process (container=%container.id proc=%proc.name pid=%proc.pid)"
+  priority: HIGH
+  tags: [defense_evasion, T1036]
+
+- rule: Privilege Escalation
+  desc: detect chmod/chown on sensitive binaries
+  condition: container.id != host and evt.type in (chmod, chown) and (fd.name contains "/bin" or fd.name contains "/sbin" or fd.name contains "/usr/bin")
+  output: "Privilege escalation attempt (container=%container.id proc=%proc.name file=%fd.name)"
+  priority: HIGH
+  tags: [privilege_escalation, T1548]

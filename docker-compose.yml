@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.14.0
+    container_name: soc-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - cluster.name=falcoshield-soc
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    networks:
+      - soc-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.0
+    container_name: soc-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - soc-net
+
+  falco:
+    image: falcosecurity/falco:latest
+    container_name: soc-falco
+    privileged: true
+    pid: host
+    network_mode: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /boot:/host/boot:ro
+      - /lib/modules:/host/lib/modules:ro
+      - /usr:/host/usr:ro
+      - /etc:/host/etc:ro
+      - ./rules/falco_rules.yaml:/etc/falco/falco_rules.yaml:ro
+    command: >
+      falco --grpc-enabled=True --grpc-bind-address=0.0.0.0:5060
+      --json-output=True --json-include-output-property=True
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+      - IPC_LOCK
+      - SYSLOG
+    restart: unless-stopped
+
+  ai-soc:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: soc-ai-engine
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config:/app/config:ro
+      - ./.env:/app/.env:ro
+      - ./rules:/app/rules:ro
+    environment:
+      - FALCO_GRPC_HOST=localhost
+      - FALCO_GRPC_PORT=5060
+      - ES_HOST=http://localhost:9200
+      - DASHBOARD_PORT=8080
+    depends_on:
+      - falco
+    restart: unless-stopped
+
+networks:
+  soc-net:
+    driver: bridge
+
+volumes:
+  es-data:
