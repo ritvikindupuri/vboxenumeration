@@ -48,7 +48,7 @@ class AISOC:
     async def start(self):
         self._running = True
         logger.info("=" * 60)
-        logger.info("  Argus AI-SOC - Multi-Agent Security Platform")
+        logger.info("  FalcoHive AI-SOC - Multi-Agent Security Platform")
         logger.info(f"  Gemini Model: {settings.GEMINI_MODEL}")
         logger.info(f"  Elasticsearch: {'Connected' if self.elastic.available else 'Not available'}")
         logger.info(f"  Auto-block: {settings.AUTO_BLOCK_ENABLED}")
@@ -92,7 +92,7 @@ class AISOC:
                 image=image,
                 name=name,
                 ports=ports,
-                labels={"argus": "honeypot", "managed-by": "ai-soc"},
+                labels={"falcohive": "honeypot", "managed-by": "ai-soc"},
             )
             if c:
                 self.honeypot_containers.append({"id": c.id, "name": name, "image": image})

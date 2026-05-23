@@ -1,4 +1,4 @@
-# Argus AI-SOC
+# FalcoHive AI-SOC
 
 **Multi-Agent AI Security Operations Center** — powered by Gemini AI agents that orchestrate Docker, Falco, and Elasticsearch for real-time container threat detection and automated response.
 
@@ -121,9 +121,9 @@ container-security-ai-soc/
 ```
 
 ## Elasticsearch Indexes
-- `argus-falco-event-*` — Raw Falco events
-- `argus-detection-*` — AI detection analysis
-- `argus-response-*` — Response actions taken
-- `argus-attack-simulation-*` — Red team attack logs
-- `argus-report-*` — Generated incident reports
-- `argus-orchestrator-decision-*` — Orchestrator decisions
+- `falcohive-falco-event-*` — Raw Falco events
+- `falcohive-detection-*` — AI detection analysis
+- `falcohive-response-*` — Response actions taken
+- `falcohive-attack-simulation-*` — Red team attack logs
+- `falcohive-report-*` — Generated incident reports
+- `falcohive-orchestrator-decision-*` — Orchestrator decisions

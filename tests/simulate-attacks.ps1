@@ -4,7 +4,7 @@ param(
 )
 
 Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "  Argus AI-SOC - Advanced Attack Simulation" -ForegroundColor Cyan
+Write-Host "  FalcoHive AI-SOC - Advanced Attack Simulation" -ForegroundColor Cyan
 Write-Host "  20+ Unique Container Security Attacks" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
