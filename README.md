@@ -1,4 +1,4 @@
-# FalcoHive AI-SOC
+# FalcoHive
 
 **Multi-Agent AI Security Operations Center** — powered by Gemini AI agents that orchestrate Docker, Falco, and Elasticsearch for real-time container threat detection and automated response.
 

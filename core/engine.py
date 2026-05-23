@@ -48,7 +48,7 @@ class AISOC:
     async def start(self):
         self._running = True
         logger.info("=" * 60)
-        logger.info("  FalcoHive AI-SOC - Multi-Agent Security Platform")
+        logger.info("  FalcoHive - Multi-Agent Container Security Platform")
         logger.info(f"  Gemini Model: {settings.GEMINI_MODEL}")
         logger.info(f"  Elasticsearch: {'Connected' if self.elastic.available else 'Not available'}")
         logger.info(f"  Auto-block: {settings.AUTO_BLOCK_ENABLED}")

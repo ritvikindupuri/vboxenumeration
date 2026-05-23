@@ -14,7 +14,7 @@ HTML = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>FalcoHive AI-SOC</title>
+<title>FalcoHive</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 html{font-size:15px}
@@ -171,8 +171,8 @@ body{font-family:-apple-system,'Segoe UI','Inter',system-ui,sans-serif;backgroun
 <div class="header-left">
 <div class="header-logo">A</div>
 <div>
-<h1>Falco<span>Hive</span> <span>SOC</span></h1>
-<div class="sub">Falco-Powered AI Hive Security Platform</div>
+<h1>Falco<span>Hive</span></h1>
+<div class="sub">AI Agent Hive for Container Security</div>
 </div>
 </div>
 <div class="header-right">
