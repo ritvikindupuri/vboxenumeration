@@ -56,6 +56,12 @@ class DetectionAgent(BaseAgent):
             "user_name": event.get("user_name", ""),
         }
 
+        self.emit_decision("ANALYZING", f"Examining event: {event.get('rule', 'unknown')} [{event.get('priority', '')}]", {
+            "container": event.get("container_name", ""),
+            "process": event.get("process_name", ""),
+            "syscall": event.get("evt_type", ""),
+        })
+
         result = self.think({
             "type": "falco_event_analysis",
             "event": analysis_fields,
@@ -73,6 +79,14 @@ class DetectionAgent(BaseAgent):
 
         result["final_risk_score"] = risk_score
         result["original_priority"] = event_priority
+
+        if result.get("is_threat", False):
+            self.emit_decision(
+                result.get("recommended_action", "ALERT"),
+                f"{result.get('attack_type', 'unknown')} (MITRE: {result.get('mitre_id', 'N/A')}) - {result.get('explanation', '')[:200]}",
+                {"risk_score": risk_score, "confidence": result.get("confidence", 0)},
+            )
+
         return result
 
     def _local_fallback(self, event: dict) -> dict:

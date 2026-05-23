@@ -33,6 +33,11 @@ class AISOC:
         self.attack = AttackAgent(self.gemini)
         self.reporting = ReportingAgent(self.gemini)
 
+        q = self.agent_event_queue
+        for agent in [self.orchestrator, self.detection, self.response_agent, self.attack, self.reporting]:
+            agent.set_emit_callback(lambda ev: q.put_nowait(ev))
+
+        self.agent_event_queue: asyncio.Queue = asyncio.Queue()
         self.events: list = []
         self.detections: list = []
         self.responses: list = []
@@ -60,8 +65,21 @@ class AISOC:
         logger.info("[3/5] Starting dashboard...")
         await self.dashboard.start()
 
+        logger.info("[3.5/5] Starting agent event stream...")
+        asyncio.create_task(self._agent_event_loop())
+
         logger.info("[4/5] Starting AI orchestration loop...")
         await self._orchestration_loop()
+
+    async def _agent_event_loop(self):
+        while self._running:
+            try:
+                event = await asyncio.wait_for(self.agent_event_queue.get(), timeout=1.0)
+                await self.dashboard.broadcast(event)
+            except asyncio.TimeoutError:
+                continue
+            except Exception as e:
+                logger.error(f"Agent event stream error: {e}")
 
     async def _deploy_honeypots(self):
         targets = [
@@ -166,15 +184,33 @@ class AISOC:
             logger.warning(f"No container ID to act on for {container_name}")
             return
 
+        self.response_agent.emit_decision(action, response.get("reasoning", ""), {
+            "container": container_name,
+            "rule": event.get("rule", ""),
+            "confidence": response.get("action_confidence", 0),
+        })
+
         if action == "KILL":
-            self.docker.kill_container(container_id)
+            cmd = f"docker kill {container_name}"
+            self.response_agent.emit_command(cmd)
+            exit_code = self.docker.kill_container(container_id)
+            self.response_agent.emit_command(cmd, exit_code=0 if exit_code else 1, output="Container killed")
             logger.critical(f"[KILL] {container_name}: {response.get('reasoning', '')}")
         elif action == "BLOCK":
-            self.docker.kill_container(container_id)
+            cmd = f"docker kill {container_name}"
+            self.response_agent.emit_command(cmd)
+            exit_code = self.docker.kill_container(container_id)
+            self.response_agent.emit_command(cmd, exit_code=0 if exit_code else 1, output="Process blocked")
             logger.critical(f"[BLOCK] {container_name}: {response.get('reasoning', '')}")
         elif action == "ISOLATE":
+            cmd_net = f"docker network disconnect {container_name}"
+            self.response_agent.emit_command(cmd_net)
             self.docker.disconnect_network(container_id)
+            self.response_agent.emit_command(cmd_net, exit_code=0, output="Network disconnected")
+            cmd_stop = f"docker stop {container_name}"
+            self.response_agent.emit_command(cmd_stop)
             self.docker.stop_container(container_id)
+            self.response_agent.emit_command(cmd_stop, exit_code=0, output="Container stopped")
             logger.warning(f"[ISOLATE] {container_name}: {response.get('reasoning', '')}")
         elif action == "ALERT":
             logger.warning(f"[ALERT] {container_name}: {response.get('reasoning', '')}")
@@ -187,6 +223,17 @@ class AISOC:
 
         attack_plan = await self.attack.plan_attack(target_names, self.attack_log)
         logger.info(f"Attack Agent: Planning {attack_plan.get('attack_name', 'unknown')}")
+
+        self.attack.emit_decision(
+            "EXECUTE_ATTACK",
+            f"Running {attack_plan.get('attack_name', 'unknown')} on {attack_plan.get('target_container', 'unknown')}",
+            attack_plan,
+        )
+
+        for cmd in attack_plan.get("commands", []):
+            self.attack.emit_command(cmd)
+            exit_code, output = self.docker.exec_command(attack_plan["target_container"], cmd)
+            self.attack.emit_command(cmd, exit_code=exit_code, output=output[:2000])
 
         result = await self.attack.execute_attack(self.docker, attack_plan)
         self.attack_log.append(result)

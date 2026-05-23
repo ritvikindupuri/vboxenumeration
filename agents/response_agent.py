@@ -53,6 +53,12 @@ class ResponseAgent(BaseAgent):
             "detection_analysis": detection_result,
         }
 
+        self.emit_decision("EVALUATING", f"Deciding action for {event.get('rule', 'unknown')} (risk: {detection_result.get('risk_score', 0)})", {
+            "detected_attack": detection_result.get("attack_type", ""),
+            "mitre_id": detection_result.get("mitre_id", ""),
+            "confidence": detection_result.get("confidence", 0),
+        })
+
         decision = self.think(input_data)
         action = decision.get("action", "ALERT")
 
@@ -73,6 +79,11 @@ class ResponseAgent(BaseAgent):
             decision["action"] = preferred
             decision["action_confidence"] = confidence
             decision["reasoning"] = f"Overridden by risk-based policy (risk={detection_result.get('risk_score', 0)})"
+
+        self.emit_decision(decision.get("action"), decision.get("reasoning", ""), {
+            "confidence": decision.get("action_confidence", 0),
+            "containment": decision.get("containment_strategy", "immediate"),
+        })
 
         return decision
 
