@@ -49,7 +49,7 @@ body{font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;backgroun
 /* Header */
 header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:1px solid var(--border);padding:0 24px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;height:60px}
 .logo{display:flex;align-items:center;gap:12px}
-.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;position:relative}
 .logo-text{font-size:18px;font-weight:700;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .logo-text span{color:#fff;background:none;-webkit-text-fill-color:initial}
 .header-right{display:flex;align-items:center;gap:16px}
@@ -347,7 +347,20 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 
 <header>
   <div class="logo">
-    <div class="logo-icon">V</div>
+    <div class="logo-icon">
+      <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+        <defs>
+          <linearGradient id="vba-lg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#fff" stop-opacity="1"/>
+            <stop offset="1" stop-color="#fff" stop-opacity="0.7"/>
+          </linearGradient>
+        </defs>
+        <rect x="4" y="6" width="24" height="18" rx="3" stroke="url(#vba-lg)" stroke-width="1.5" fill="rgba(255,255,255,0.08)"/>
+        <path d="M16 13v4" stroke="url(#vba-lg)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="16" cy="10" r="1.2" fill="url(#vba-lg)"/>
+        <path d="M10 20l4-4h4l4 4" stroke="url(#vba-lg)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <div class="logo-text">VBox<span>Auditor</span></div>
   </div>
   <div class="header-right">
