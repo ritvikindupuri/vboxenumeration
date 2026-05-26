@@ -7,6 +7,7 @@ from typing import Callable
 
 from agents.analyzer_agent import AnalyzerAgent
 from agents.enumerator_agent import EnumeratorAgent
+from agents.exploiter_agent import ExploiterAgent
 from agents.reporter_agent import ReporterAgent
 from core.claude_client import ClaudeClient
 
@@ -18,11 +19,12 @@ class AuditEngine:
         self.claude = claude
         self.enumerator = EnumeratorAgent()
         self.analyzer = AnalyzerAgent(claude)
+        self.exploiter = ExploiterAgent()
         self.reporter = ReporterAgent()
         self.event_queue: Queue = Queue()
         self._running = False
 
-        for agent in [self.enumerator, self.analyzer, self.reporter]:
+        for agent in [self.enumerator, self.analyzer, self.exploiter, self.reporter]:
             agent.on_event(self._handle_event)
 
     def _handle_event(self, agent_name: str, event_type: str, data: dict):
@@ -53,7 +55,11 @@ class AuditEngine:
             context["summary"] = analysis_result.get("summary", {})
             context["executive_summary"] = analysis_result.get("executive_summary", "")
 
-            logger.info("=== Phase 3: Report Generation ===")
+            logger.info("=== Phase 3: Active Exploitation ===")
+            exploit_result = self.exploiter.run(context)
+            context["exploitation"] = exploit_result
+
+            logger.info("=== Phase 4: Report Generation ===")
             report_result = self.reporter.run(context)
             context["report"] = report_result
 

@@ -122,6 +122,7 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .agent-badge.enumerator{background:rgba(255,111,60,.15);color:var(--accent-orange)}
 .agent-badge.analyzer{background:rgba(0,188,212,.15);color:var(--accent-cyan)}
 .agent-badge.reporter{background:rgba(0,230,118,.15);color:var(--accent-green)}
+.agent-badge.exploiter{background:rgba(255,23,68,.15);color:var(--accent-red)}
 .agent-badge.remediator{background:rgba(255,215,64,.15);color:var(--accent-gold)}
 .agent-badge.system{background:rgba(179,136,255,.15);color:var(--accent-purple)}
 .agent-icon{font-size:12px}
@@ -202,6 +203,15 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .finding-body-inner .refs a{color:var(--accent-cyan);text-decoration:none}
 .finding-body-inner .refs a:hover{text-decoration:underline}
 
+/* CVE / MSF / exploit / attack chain badges and blocks */
+.cve-badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(255,23,68,.15);color:var(--accent-red);letter-spacing:.3px;vertical-align:middle;margin-left:4px}
+.msf-badge{display:inline-block;font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;background:rgba(0,188,212,.15);color:var(--accent-cyan);text-transform:uppercase;letter-spacing:.5px;vertical-align:middle;margin-left:4px}
+.finding-exploit{margin-top:6px}
+.finding-exploit pre{background:rgba(0,0,0,.25);padding:6px 10px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);white-space:pre-wrap;word-break:break-word;line-height:1.5;margin-top:4px;border:1px solid rgba(255,255,255,.04);overflow-x:auto}
+.finding-chain{font-size:12px;color:var(--accent-orange);line-height:1.5;margin-top:4px;padding:4px 8px;background:rgba(255,111,60,.06);border-radius:4px;border-left:2px solid var(--accent-orange)}
+.exploit-code{background:rgba(0,0,0,.25);padding:8px 10px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);white-space:pre-wrap;word-break:break-word;line-height:1.5;border:1px solid rgba(255,255,255,.04);overflow-x:auto;margin:4px 0}
+.attack-chain{font-size:12px;color:var(--accent-orange);line-height:1.5;padding:4px 8px;background:rgba(255,111,60,.06);border-radius:4px;border-left:2px solid var(--accent-orange);margin:4px 0}
+
 /* Download area */
 .download-area{margin-top:16px}
 .download-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
@@ -228,6 +238,61 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 /* Attack vectors */
 .vector-list{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
 .vector-tag{padding:3px 8px;border-radius:4px;font-size:10px;background:rgba(255,111,60,.08);border:1px solid rgba(255,111,60,.15);color:var(--accent-orange)}
+
+/* Kill chain visualization */
+.kill-chain{display:flex;flex-direction:column;gap:2px;margin-top:10px}
+.kill-node{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:6px;background:var(--bg-card);border:1px solid var(--border);font-size:11px;line-height:1.4;transition:.2s}
+.kill-node:hover{border-color:var(--accent-cyan)}
+.kill-node .kc-stage{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent-cyan);white-space:nowrap;min-width:85px;padding-top:1px}
+.kill-node .kc-body{flex:1}
+.kill-node .kc-tech{font-size:11px;font-weight:600;color:var(--text)}
+.kill-node .kc-detail{font-size:10px;color:var(--text-dim);margin-top:1px}
+.kill-node .kc-status{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.kill-node .kc-status.completed{background:rgba(0,230,118,.12);color:var(--accent-green)}
+.kill-node .kc-status.confirmed{background:rgba(255,23,68,.12);color:var(--accent-red)}
+.kill-node .kc-status.potential{background:rgba(255,215,64,.1);color:var(--accent-gold)}
+.kill-chain-arrow{text-align:center;font-size:10px;color:var(--text-dim);padding:0 0 2px;letter-spacing:4px}
+
+/* Vulnerability probe output */
+.vuln-entry{background:rgba(255,23,68,.03);border-left:2px solid var(--accent-red);padding:8px 12px;margin-bottom:2px}
+.vuln-entry .vuln-hdr{display:flex;align-items:center;gap:6px;font-size:12px}
+.vuln-entry .vuln-cve{font-weight:700;color:var(--accent-red)}
+.vuln-entry .vuln-service{color:var(--text-dim);font-size:11px}
+.vuln-entry .vuln-output{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:4px;font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);white-space:pre-wrap;word-break:break-word;line-height:1.3}
+.vuln-badge{display:inline-block;font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;text-transform:uppercase;letter-spacing:.3px}
+.vuln-badge.confirmed{background:rgba(255,23,68,.15);color:var(--accent-red)}
+.vuln-badge.probed{background:rgba(255,215,64,.12);color:var(--accent-gold)}
+
+/* Exploitation summary */
+.exploit-summary-card{background:var(--bg-card);border-radius:8px;padding:10px;border:1px solid var(--border);margin-bottom:10px}
+.exploit-summary-card .es-header{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent-red);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.exploit-summary-card .es-stats{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.exploit-summary-card .es-stat{text-align:center;padding:4px}
+.exploit-summary-card .es-stat .es-val{font-size:18px;font-weight:700}
+.exploit-summary-card .es-stat .es-val.critical{color:var(--accent-red)}
+.exploit-summary-card .es-stat .es-val.success{color:var(--accent-green)}
+.exploit-summary-card .es-stat .es-label{font-size:8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px}
+
+/* Credential spray results */
+.cred-hit{display:flex;align-items:center;gap:6px;padding:4px 8px;background:rgba(255,23,68,.08);border-radius:4px;margin-top:4px;font-size:11px;border:1px solid var(--accent-red)}
+.cred-hit .cred-service{font-weight:600;color:var(--accent-red)}
+.cred-hit .cred-creds{color:var(--accent-gold);font-family:'JetBrains Mono','Fira Code',monospace;font-size:10px}
+
+/* Compromised hosts panel */
+.compromised-card{background:var(--bg-card);border-radius:8px;border:1px solid var(--accent-green);overflow:hidden;margin-bottom:8px}
+.compromised-card .cc-header{display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(0,230,118,.06);border-bottom:1px solid rgba(0,230,118,.12)}
+.compromised-card .cc-icon{font-size:14px}
+.compromised-card .cc-ip{font-size:12px;font-weight:600;color:var(--accent-green)}
+.compromised-card .cc-creds{font-size:10px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);margin-left:auto}
+.compromised-card .cc-body{padding:8px 10px}
+.compromised-card .cc-info{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px}
+.compromised-card .cc-info-item{font-size:10px;color:var(--text-dim)}
+.compromised-card .cc-info-item strong{color:var(--text);font-weight:600}
+.cc-shell-badge{display:inline-block;font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;background:rgba(0,230,118,.15);color:var(--accent-green);text-transform:uppercase;letter-spacing:.5px;margin-left:auto}
+.shell-output{margin-top:3px;padding:3px 6px;background:rgba(0,0,0,.15);border-radius:3px;font-size:10px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);white-space:pre-wrap;word-break:break-word;line-height:1.3;border-left:2px solid var(--accent-green)}
+.shell-output .shell-prompt{color:var(--accent-green);font-weight:600}
+.shell-output-header{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;color:var(--text-dim);margin-top:2px}
+.shell-output-header .shell-ip{color:var(--accent-green);font-weight:600}
 
 /* Scrollbar */
 ::-webkit-scrollbar{width:4px}
@@ -260,7 +325,8 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
       <div id="phase-indicator">
         <span class="phase" id="phase-enum">01 Enumerate</span>
         <span class="phase" id="phase-analyze">02 Analyze</span>
-        <span class="phase" id="phase-report">03 Report</span>
+        <span class="phase" id="phase-exploit">03 Exploit</span>
+        <span class="phase" id="phase-report">04 Report</span>
       </div>
     </div>
     <div id="log-stream">
@@ -287,6 +353,19 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Kill Chain -->
+    <div id="killChainSection" class="sidebar-section" style="display:none">
+      <div class="section-title">Kill Chain</div>
+      <div id="killChainContainer"></div>
+    </div>
+
+    <!-- Exploitation Summary -->
+    <div id="exploitSummarySection" class="sidebar-section" style="display:none">
+      <div class="section-title">Active Exploitation</div>
+      <div id="exploitSummaryContainer"></div>
+      <div id="credHitsContainer"></div>
     </div>
 
     <!-- Summary -->
@@ -329,6 +408,12 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
       <div class="section-title">Remediation Activity</div>
       <div id="remediationList"></div>
     </div>
+
+    <!-- Compromised Hosts -->
+    <div id="compromisedSection" class="sidebar-section" style="display:none">
+      <div class="section-title">Compromised Hosts <span style="font-weight:400;color:var(--accent-green);font-size:8px;letter-spacing:0;text-transform:none">(shell obtained)</span></div>
+      <div id="compromisedList"></div>
+    </div>
   </div>
 </div>
 
@@ -337,10 +422,19 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 const AGENTS = {
   enumerator: { label: "Enumerator", icon: "🔍", cls: "enumerator" },
   analyzer:   { label: "Analyzer",   icon: "🧠", cls: "analyzer" },
+  exploiter:  { label: "Exploiter",  icon: "⚔", cls: "exploiter" },
   reporter:   { label: "Reporter",   icon: "📊", cls: "reporter" },
   remediator: { label: "Remediator", icon: "🔧", cls: "remediator" },
   system:     { label: "System",     icon: "⚙️", cls: "system" },
 };
+
+// HTML escaping helper
+function esc(s) {
+  if (s == null) return "";
+  const d = document.createElement("div");
+  d.textContent = String(s);
+  return d.innerHTML;
+}
 
 // Event queue for slow streaming
 const eventQueue = [];
@@ -379,6 +473,11 @@ function processNext() {
   else if (msg.type === "executive") { renderExecutive(msg.data); }
   else if (msg.type === "error") { addEntry(msg.agent, "error", msg.data); }
   else if (msg.type === "remediation_complete") { onRemediationComplete(msg.data); }
+  else if (msg.type === "kill_chain") { renderKillChain(msg.data); }
+  else if (msg.type === "vulnerability") { addVulnerabilityEntry(msg.data); }
+  else if (msg.type === "exploitation_summary") { renderExploitSummary(msg.data); }
+  else if (msg.type === "compromise") { addCompromisedHost(msg.data); }
+  else if (msg.type === "shell_output") { addShellOutput(msg.data); }
   else { addEntry(msg.agent, msg.type, msg.data); }
 
   setTimeout(processNext, STREAM_DELAY);
@@ -393,6 +492,8 @@ function addEntry(agent, type, data) {
   else if (agent === "enumerator" && type === "thinking" && data.message && data.message.includes("Initializing")) setPhase("enum", "active");
   else if (agent === "analyzer" && type === "thinking" && data.message && data.message.includes("Preparing")) setPhase("analyze", "active");
   else if (agent === "analyzer" && type === "result") setPhase("analyze", "done");
+  else if (agent === "exploiter" && type === "thinking" && data.message && data.message.includes("Initializing")) setPhase("exploit", "active");
+  else if (agent === "exploiter" && type === "result") setPhase("exploit", "done");
   else if (agent === "reporter" && type === "thinking") setPhase("report", "active");
   else if (agent === "reporter" && type === "result") setPhase("report", "done");
 
@@ -450,11 +551,49 @@ function addEntry(agent, type, data) {
         '<div class="finding-hdr">' +
           '<span class="sev-badge ' + sev + '">' + esc(data.severity || "INFO") + "</span>" +
           '<strong>' + esc(data.title || "") + "</strong>" +
+          (data.cve ? '<span class="cve-badge">' + esc(data.cve) + "</span>" : "") +
+          (data.metasploit ? '<span class="msf-badge">MSF</span>' : "") +
         "</div>" +
         '<div class="finding-meta">CVSS ' + esc(data.cvss_score || "N/A") + "  ·  " + esc(data.affected_component || "") + "</div>" +
         '<div class="finding-desc">' + esc(data.description || "") + "</div>" +
+        (data.exploit_poc ? '<div class="finding-exploit"><span class="finding-label">Exploit PoC</span><pre>' + esc(data.exploit_poc) + "</pre></div>" : "") +
+        (data.attack_chain ? '<div class="finding-chain"><span class="finding-label">Attack Chain</span> ' + esc(data.attack_chain) + "</div>" : "") +
         (remSteps ? '<div class="finding-remediation"><span class="finding-label">Remediation</span><br>' + remSteps + "</div>" : "") +
         (data.attack_scenario ? '<div class="finding-attack"><span class="finding-label">Attack Scenario</span> ' + esc(data.attack_scenario) + "</div>" : "") +
+      "</div>";
+  }
+}
+
+let findingDataMap = {};
+
+function renderFindings(data) {
+  const list = document.getElementById("findingsList");
+  list.innerHTML = "";
+  (data.findings || []).forEach(f => {
+    findingDataMap[f.id] = f;
+    const sev = (f.severity || "info").toLowerCase();
+    const card = document.createElement("div");
+    card.className = "finding-card " + sev;
+    card.dataset.findingId = f.id;
+    card.innerHTML =
+      '<div class="finding-header" onclick="toggleFinding(this)">' +
+        '<span class="sev-badge ' + sev + '">' + (f.severity || "INFO") + "</span>" +
+        '<span class="finding-title">' + esc(f.title) + "</span>" +
+        '<span class="cvss-tag">CVSS ' + (f.cvss_score || "N/A") + "</span>" +
+        (f.cve ? '<span class="cve-badge">' + esc(f.cve) + "</span>" : "") +
+        '<button class="remediation-btn" data-finding-id="' + f.id + '" onclick="event.stopPropagation();remediate(this)">Execute</button>' +
+        '<span class="expand-icon">▼</span>' +
+      "</div>" +
+      '<div class="finding-body"><div class="finding-body-inner">' +
+        '<div class="desc">' + esc(f.description || "") + "</div>" +
+        '<div class="section-label">Attack Scenario</div>' +
+        '<div class="attack-scenario">' + esc(f.attack_scenario || "N/A") + "</div>" +
+        (f.exploit_poc ? '<div class="section-label">Exploit PoC</div><pre class="exploit-code">' + esc(f.exploit_poc) + "</pre>" : "") +
+        (f.attack_chain ? '<div class="section-label">Attack Chain</div><div class="attack-chain">' + esc(f.attack_chain) + "</div>" : "") +
+        '<div class="section-label">Remediation</div>' +
+        '<div class="remediation">' + esc(f.remediation || "N/A") + "</div>" +
+        '<div class="section-label">References</div>' +
+        '<div class="refs">' + esc((f.references || []).join("\n")) + "</div>" +
         '<div class="finding-body-actions"><button class="remediation-btn finding-exec-btn" data-finding-id="' + f.id + '" onclick="event.stopPropagation();remediate(this)">Execute Fix</button></div>' +
       "</div></div>";
     list.appendChild(card);
@@ -524,12 +663,151 @@ function startAudit() {
   findingDataMap = {};
   document.getElementById("remediationSection").style.display = "none";
   document.getElementById("remediationList").innerHTML = "";
+  document.getElementById("killChainSection").style.display = "none";
+  document.getElementById("exploitSummarySection").style.display = "none";
+  document.getElementById("exploitSummaryContainer").innerHTML = "";
+  document.getElementById("credHitsContainer").innerHTML = "";
+  document.getElementById("compromisedSection").style.display = "none";
+  document.getElementById("compromisedList").innerHTML = "";
   document.querySelectorAll(".phase").forEach(p => { p.classList.remove("active","done"); });
   // Keep log but add a separator
   const sep = document.createElement("div");
   sep.style.cssText = "text-align:center;padding:12px;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid var(--border);margin-bottom:8px";
   sep.textContent = "——— New Audit ———";
   logStream.appendChild(sep);
+}
+
+function renderKillChain(data) {
+  const container = document.getElementById("killChainContainer");
+  container.innerHTML = "";
+  const chain = data.chain || [];
+  if (chain.length === 0) return;
+  document.getElementById("killChainSection").style.display = "block";
+  chain.forEach((node, i) => {
+    if (i > 0) {
+      const arrow = document.createElement("div");
+      arrow.className = "kill-chain-arrow";
+      arrow.textContent = "▼";
+      container.appendChild(arrow);
+    }
+    const el = document.createElement("div");
+    el.className = "kill-node";
+    const status = (node.status || "potential").toLowerCase();
+    el.innerHTML =
+      '<div class="kc-stage">' + esc(node.stage || "") + '</div>' +
+      '<div class="kc-body">' +
+        '<div class="kc-tech">' + esc(node.technique || "") + '</div>' +
+        (node.detail ? '<div class="kc-detail">' + esc(node.detail) + '</div>' : "") +
+      '</div>' +
+      '<div class="kc-status ' + status + '">' + status + '</div>';
+    container.appendChild(el);
+  });
+}
+
+function addVulnerabilityEntry(data) {
+  emptyState && emptyState.remove();
+  const confirmed = data.confirmed;
+  const el = document.createElement("div");
+  el.className = "vuln-entry";
+  el.innerHTML =
+    '<div class="vuln-hdr">' +
+      '<span class="vuln-badge ' + (confirmed ? "confirmed" : "probed") + '">' + (confirmed ? "CONFIRMED" : "PROBED") + '</span>' +
+      '<span class="vuln-cve">' + esc(data.cve || "CVE-?") + '</span>' +
+      '<span class="vuln-service">' + esc(data.ip || "?") + ":" + data.port + " (" + esc(data.service || "?") + ")</span>" +
+    '</div>' +
+    (data.probe_output ? '<div class="vuln-output">' + esc(data.probe_output) + "</div>" : "");
+  logStream.appendChild(el);
+  logStream.scrollTop = logStream.scrollHeight;
+}
+
+function renderExploitSummary(data) {
+  const container = document.getElementById("exploitSummaryContainer");
+  const credContainer = document.getElementById("credHitsContainer");
+  container.innerHTML = "";
+  credContainer.innerHTML = "";
+  document.getElementById("exploitSummarySection").style.display = "block";
+  const card = document.createElement("div");
+  card.className = "exploit-summary-card";
+  card.innerHTML =
+    '<div class="es-header">⚔ Active Exploitation Results</div>' +
+    '<div class="es-stats">' +
+      '<div class="es-stat"><div class="es-val">' + (data.targets_scanned || 0) + '</div><div class="es-label">Targets</div></div>' +
+      '<div class="es-stat"><div class="es-val">' + (data.services_probed || 0) + '</div><div class="es-label">Services</div></div>' +
+      '<div class="es-stat"><div class="es-val critical">' + (data.cve_probes_executed || 0) + '</div><div class="es-label">CVE Probes</div></div>' +
+      '<div class="es-stat"><div class="es-val success">' + (data.confirmed_vulnerabilities || 0) + '</div><div class="es-label">Confirmed Vulns</div></div>' +
+      (data.hosts_compromised > 0 ? '<div class="es-stat" style="grid-column:1/-1"><div class="es-val" style="color:var(--accent-green);font-size:22px">' + data.hosts_compromised + '</div><div class="es-label">Hosts Compromised 💀</div></div>' : "") +
+    '</div>' +
+    (data.credentials_discovered > 0 ? '<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:11px;color:var(--accent-red);font-weight:600">🔑 ' + data.credentials_discovered + ' credential set(s) discovered</div>' : "");
+  container.appendChild(card);
+}
+
+function addCompromisedHost(data) {
+  document.getElementById("compromisedSection").style.display = "block";
+  const list = document.getElementById("compromisedList");
+
+  // Check if this host already exists
+  let existing = list.querySelector('.compromised-card[data-ip="' + esc(data.ip) + '"]');
+  if (existing) {
+    // Update existing card's command output
+    const body = existing.querySelector(".cc-commands");
+    if (body && data.commands) {
+      data.commands.forEach(cmd => {
+        if (!cmd.output) return;
+        const out = document.createElement("div");
+        out.className = "shell-output";
+        out.innerHTML = '<span class="shell-prompt">$</span> ' + esc(cmd.cmd) + "\n" + esc(cmd.output);
+        body.appendChild(out);
+      });
+    }
+    return;
+  }
+
+  const card = document.createElement("div");
+  card.className = "compromised-card";
+  card.dataset.ip = data.ip;
+
+  const hostname = esc(data.hostname || data.ip);
+  const whoami = esc(data.whoami || "?");
+  const osInfo = esc((data.os_info || "").slice(0, 100));
+
+  let commandsHtml = "";
+  (data.commands || []).forEach(cmd => {
+    if (!cmd.output) return;
+    commandsHtml += '<div class="shell-output"><span class="shell-prompt">$</span> ' + esc(cmd.cmd) + "\n" + esc(cmd.output) + "</div>";
+  });
+
+  card.innerHTML =
+    '<div class="cc-header">' +
+      '<span class="cc-icon">💀</span>' +
+      '<span class="cc-ip">' + esc(data.ip) + ':' + data.port + '</span>' +
+      '<span class="cc-creds">' + esc(data.username) + ':' + esc(data.password) + '</span>' +
+      '<span class="cc-shell-badge">SHELL</span>' +
+    '</div>' +
+    '<div class="cc-body">' +
+      '<div class="cc-info">' +
+        '<div class="cc-info-item"><strong>Hostname:</strong> ' + hostname + '</div>' +
+        '<div class="cc-info-item"><strong>User:</strong> ' + whoami + '</div>' +
+        (osInfo ? '<div class="cc-info-item" style="grid-column:1/-1"><strong>OS:</strong> ' + osInfo + '</div>' : "") +
+      '</div>' +
+      (commandsHtml ? '<div class="cc-commands">' + commandsHtml + "</div>" : "") +
+    '</div>';
+
+  list.insertBefore(card, list.firstChild);
+}
+
+function addShellOutput(data) {
+  emptyState && emptyState.remove();
+  const el = document.createElement("div");
+  el.className = "entry";
+  el.innerHTML =
+    '<div class="shell-output-header">' +
+      '<span style="color:var(--accent-green);font-weight:700">$</span>' +
+      '<span class="shell-ip">' + esc(data.ip || "?") + '</span>' +
+      '<span style="color:var(--text-dim)">' + esc(data.cmd || "") + '</span>' +
+    '</div>' +
+    '<div class="shell-output">' + esc(data.output || "") + '</div>';
+  logStream.appendChild(el);
+  logStream.scrollTop = logStream.scrollHeight;
 }
 </script>
 </body>
@@ -603,7 +881,7 @@ def _run_engine():
     def event_handler(agent_name, event_type, data):
         broadcast({"agent": agent_name, "type": event_type, "data": data})
 
-    for agent in [engine.enumerator, engine.analyzer, engine.reporter]:
+    for agent in [engine.enumerator, engine.analyzer, engine.exploiter, engine.reporter]:
         agent._handlers = []
         agent.on_event(event_handler)
 

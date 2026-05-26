@@ -1,6 +1,7 @@
 import re
 
 from agents.base_agent import BaseAgent
+from core.network_scanner import NetworkScanner
 from core.vbox_controller import VBoxController
 
 
@@ -17,6 +18,7 @@ class EnumeratorAgent(BaseAgent):
         data["running_vms"] = self._enum_running_vms()
         data["vm_details"] = self._enum_vm_details(data["vms"])
         data["network"] = self._enum_network()
+        data["active_scan"] = self._active_network_scan(data.get("network", {}))
         data["host"] = self._enum_host()
         data["media"] = self._enum_media()
 
@@ -186,6 +188,53 @@ class EnumeratorAgent(BaseAgent):
     def _check_nat_port_forwards(self, natnets: str):
         if "Forwarding" in natnets or "forward" in natnets.lower():
             self.emit_output(f"[!] NAT port forwarding rules detected — exposed host ports")
+
+    def _active_network_scan(self, network_data: dict) -> dict:
+        self.emit_thinking("Initiating active network reconnaissance — performing ping sweeps and port scans on discovered VirtualBox networks to identify live hosts, open ports, and running services; this mirrors the initial recon phase of a real adversarial engagement")
+        hostonly_output = network_data.get("hostonly", "")
+        if not hostonly_output.strip():
+            self.emit_output("No host-only networks found — skipping active scan")
+            return {"status": "skipped", "hosts": []}
+
+        scanner = NetworkScanner()
+        subnets = scanner.extract_subnets(hostonly_output)
+        if not subnets:
+            self.emit_output("Could not extract subnet from host-only network config")
+            return {"status": "skipped", "hosts": []}
+
+        self.emit_thinking(f"Identified target subnet(s): {', '.join(subnets)} — launching ping sweep to discover live hosts")
+        self.emit_command(f"powershell Test-Connection -Count 1 (sweeping {', '.join(subnets)})")
+
+        found_hosts = []
+        for subnet in subnets:
+            self.emit_thinking(f"Scanning {subnet} for live hosts with active ICMP probes and TCP port sweeps")
+            hosts = scanner.discover_hosts(subnet)
+            if not hosts:
+                self.emit_output(f"No live hosts detected on {subnet}")
+                continue
+            self.emit_output(f"Discovered {len(hosts)} live host(s) on {subnet}: {', '.join(hosts)}")
+
+            for ip in hosts:
+                self.emit_thinking(f"Probing {ip} — performing TCP port scan on 30+ common ports (SSH, RDP, HTTP, SMB, VNC, VRDP, databases, containers)")
+                self.emit_command(f"socket.connect(({ip}, port)) — scanning 30 ports")
+                ports = scanner.port_scan(ip)
+                open_count = len(ports)
+                if open_count > 0:
+                    svc_list = ", ".join([f"{p['port']}/{p['service']}" for p in ports[:6]])
+                    if len(ports) > 6:
+                        svc_list += f" +{len(ports)-6} more"
+                    self.emit_output(f"[!] {ip}: {open_count} open port(s) — {svc_list}")
+                    for p in ports:
+                        if p["banner"]:
+                            self.emit_output(f"    Port {p['port']} ({p['service']}): {p['banner'][:150]}")
+                else:
+                    self.emit_output(f"{ip}: 0 open ports on common targets")
+
+                found_hosts.append({"ip": ip, "open_ports": ports})
+
+        total_open = sum(len(h["open_ports"]) for h in found_hosts)
+        self.emit_thinking(f"Active reconnaissance complete — discovered {len(found_hosts)} live host(s) with {total_open} open service port(s) across {len(subnets)} network(s); this data will be incorporated into the adversarial risk analysis")
+        return {"status": "complete", "subnets": subnets, "hosts": found_hosts}
 
     def _enum_host(self):
         self.emit_thinking("Profiling VirtualBox host attack surface — assessing host-level configuration that affects ALL VMs: OS version, system properties, extension pack versions, and USB device availability for passthrough attacks")
