@@ -26,7 +26,7 @@ flowchart TB
         NS[NetworkScanner<br/>Ping sweep · Port scan<br/>Banner grab · Version fingerprint]
         Ctx[(Shared Context)]
         A[2. Analyzer Agent<br/>AI-powered security analysis]
-        X[3. Exploiter Agent<br/>CVE probing · Credential spray<br/>SSH post-exploitation]
+        X[3. Exploiter Agent<br/>8-phase: CVE probes · VM escape<br/>Guest addons · Shared folders · MITM<br/>Cred spray · SSH post-exploitation]
         Rp[4. Reporter Agent<br/>JSON / HTML / PDF reports]
     end
 
@@ -112,11 +112,15 @@ flowchart TB
 
 **4. Analysis Phase** — `AnalyzerAgent` sends all enumeration data (VM configs + active scan results + service banners + version fingerprints) to Claude with a red-team prompt. Claude returns structured findings with severity, CVSS, CVE IDs, exploit PoC commands, Metasploit module paths, attack chain narratives, and remediation steps.
 
-**5. Exploitation Phase** — `ExploiterAgent` runs 4 sub-phases:
-   - **CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes Python socket-based exploit probes against each target. If nmap is installed, runs `nmap -sV -sC` for enhanced version detection.
-   - **VM Config Attacks** — Checks for VRDP exposure, clipboard hijacking, drag-and-drop exfiltration, USB passthrough.
-   - **Credential Spraying** — Tries 100+ default/weak credential pairs across 11 services (SSH, RDP, SMB, MySQL, PostgreSQL, Redis, Elasticsearch, MongoDB, MSSQL, Oracle, Telnet) using protocol-level authentication (paramiko for SSH, raw MySQL/Redis protocol, etc.). If hydra is installed, uses it for verified brute force.
-   - **Post-Exploitation** — For every discovered SSH credential, **actually connects** via paramiko and runs 10 real reconnaissance commands (`whoami`, `hostname`, `id`, `uname -a`, `ip addr`, `cat /etc/passwd`, `ps aux`, `netstat -tlnp`). Auto-detects Linux vs Windows guest. Streams every command and its output to the dashboard in real time. Emits a `compromise` event for each successful shell.
+**5. Exploitation Phase** — `ExploiterAgent` runs 8 sub-phases (each with proper **thinking → command → raw output → result** streaming):
+   - **Phase 1 — CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes live Python socket-based exploit probes against each target — the actual Python command is displayed (`$ python -c "import socket; ..."`) followed by its raw socket output. If nmap is installed, runs `nmap -sV -sC` with full raw output displayed.
+   - **Phase 2 — VM Config Attacks** — Per-VM audit of VRDP, clipboard, drag-and-drop, USB, audio, 3D acceleration, serial ports, guest additions with detailed attack technique descriptions for each finding.
+   - **Phase 3 — VM Escape Detection** — Queries `VBoxManage --version` and cross-references the installed version against 14 known guest-to-host escape CVEs (CVE-2023-21991, CVE-2022-21489, CVE-2022-21303, CVE-2021-35544, etc.) with version range matching. Each match is emitted as a confirmed vulnerability.
+   - **Phase 4 — Guest Addition Exploitation** — Runs `VBoxManage guestproperty enumerate` and `guestcontrol list` against VMs with Guest Additions, extracting OS details, user accounts, network config. Describes host-to-guest command execution and screenshot capture capabilities.
+   - **Phase 5 — Shared Folder Abuse** — Audits shared folder configurations as bidirectional host-guest filesystem bridges for malware staging and data exfiltration.
+   - **Phase 6 — Network MITM Simulation** — Runs `arp -a` and `route print` with raw output, describes ARP spoofing scenarios on host-only networks, identifies VM network segments for traffic interception.
+   - **Phase 7 — Credential Spraying** — Tries 100+ default/weak credential pairs across 11 services (SSH, RDP, SMB, MySQL, PostgreSQL, Redis, Elasticsearch, MongoDB, MSSQL, Oracle, Telnet) using protocol-level authentication (paramiko for SSH, raw MySQL/Redis protocol, etc.). Each credential pair is displayed as a command entry, with results per service.
+   - **Phase 8 — Post-Exploitation SSH** — For every discovered SSH credential, **actually connects** via paramiko and runs reconnaissance commands (`whoami`, `hostname`, `id`, `ipconfig`, `netstat -ano`, `tasklist`). Shows each command with `$` prefix. Streams every command and its raw output to the dashboard in real time. Emits a `compromise` event for each successful shell.
 
 **6. Report Generation Phase** — `ReporterAgent` generates JSON, HTML, and PDF reports.
 
@@ -196,7 +200,10 @@ All scan results are streamed to the dashboard in real time alongside the VBoxMa
 | **Real-Time Communication** | WebSocket via flask-sock |
 | **AI Analysis** | Anthropic Claude API (Claude Sonnet 4) |
 | **VirtualBox Control** | VBoxManage.exe CLI (subprocess) |
-| **CVE Database** | Local Python dict — 25+ service-version → CVE mappings |
+| **CVE Database** | Local Python dict — 25+ service-version → CVE mappings + 14 VirtualBox escape CVEs |
+| **VM Escape Detection** | VBoxManage version cross-referenced against 14 known guest-to-host escape CVEs |
+| **Guest Addition Exploitation** | VBoxManage guestproperty enumerate + guestcontrol list — host-to-guest pivot |
+| **MITM Simulation** | ARP table + route table analysis — host-only network traffic interception |
 | **SSH Post-Exploitation** | paramiko |
 | **External Tool Detection** | nmap (`-sV -sC`), THC-Hydra (auto-detected) |
 | **PDF Generation** | fpdf2 |
@@ -313,53 +320,56 @@ Open in browser and click 'Execute Audit' to begin
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  [V] VBoxAuditor                     [● Ready] [▲ Execute]  │  ← Header
-├────────────────────────────┬────────────────────────────────┤
-│                            │                                │
-│    Agent Activity Log      │     Preview Summary             │
-│                            │     (hidden until first findings)│
-│   [01 Enumerate]           │                                │
-│   [02 Analyze]             │     Kill Chain                 │
-│   [03 Exploit]             │     ▼ Stage 1: Recon ✓        │
-│   [04 Report]              │     ▼ Stage 2: Access ✓       │
-│                            │     ▼ Stage 3: Movement ◇     │
-│   (streaming entries)      │     ▼ Stage 4: PrivEsc ◇     │
-│                            │     ▼ Stage 5: Exfil ◇       │
-│                            │                                │
-│                            │     Active Exploitation        │
-│                            │     ⚔ 4 Targets · 2 Vulns     │
-│                            │     💀 1 Host Compromised      │
-│                            │                                │
-│                            │     Findings Summary           │
-│                            │     ┌───┬───┐                  │
-│                            │     │Ttl│Cri│                  │
-│                            │     ├───┼───┤                  │
-│                            │     │Hi │Med│                  │
-│                            │     ├───┼───┤                  │
-│                            │     │Low│Inf│                  │
-│                            │     └───┴───┘                  │
-│                            │                                │
-│                            │     Findings & Remediation     │
-│                            │     ┌──────────────────┐      │
-│                            │     │[HIGH] VRDE...▶   │      │
-│                            │     ├──────────────────┤      │
-│                            │     │[CRIT] Creds...▶  │      │
-│                            │     ├──────────────────┤      │
-│                            │     │[MED] TPM...▶     │      │
-│                            │     └──────────────────┘      │
-│                            │                                │
-│                            │     Compromised Hosts 💀       │
-│                            │     ┌──────────────────┐      │
-│                            │     │💀 192.168.56.101 │      │
-│                            │     │vagrant:vagrant   │SHELL │
-│                            │     │$ whoami vagrant  │      │
-│                            │     │$ hostname vm-01  │      │
-│                            │     └──────────────────┘      │
-│                            │                                │
-│                            │     Download Reports            │
-│                            │     (hidden until done)         │
-├────────────────────────────┴────────────────────────────────┤
-│                  Remediation Activity                        │
-│                  (appears after first fix)                    │
+├──────────────────────────┬──────────────────────────────────┤
+│                          │                                  │
+│   📋 Agent Activity Log  │                                  │
+│   🔧 Remediation         │     Preview Summary               │
+│                          │     (hidden until first findings)  │
+│   [01 Enumerate]         │                                  │
+│   [02 Analyze]           │     Kill Chain                   │
+│   [03 Exploit]           │     ▼ Stage 1: Recon ✓          │
+│   [04 Report]            │     ▼ Stage 2: Access ✓         │
+│                          │     ▼ Stage 3: Movement ◇       │
+│   (streaming entries)    │     ▼ Stage 4: PrivEsc ◇       │
+│   w/ agent badges,       │     ▼ Stage 5: Exfil ◇         │
+│   timestamps, thinking,  │                                  │
+│   commands, raw output,  │     Active Exploitation          │
+│   results                │     ⚔ 4 Targets · 2 Vulns       │
+│                          │     💀 1 Host Compromised        │
+│                          │                                  │
+│                          │     Findings Summary             │
+│                          │     ┌───┬───┐                   │
+│                          │     │Ttl│Cri│                   │
+│                          │     ├───┼───┤                   │
+│                          │     │Hi │Med│                   │
+│                          │     ├───┼───┤                   │
+│                          │     │Low│Inf│                   │
+│                          │     └───┴───┘                   │
+│                          │                                  │
+│                          │     Findings                     │
+│                          │     (click to expand)            │
+│                          │     ┌──────────────────┐        │
+│                          │     │[HIGH] VRDE...▶   │        │
+│                          │     ├──────────────────┤        │
+│                          │     │[CRIT] Creds...▶  │        │
+│                          │     ├──────────────────┤        │
+│                          │     │[MED] TPM...▶     │        │
+│                          │     └──────────────────┘        │
+│                          │                                  │
+│                          │     Compromised Hosts 💀         │
+│                          │     ┌──────────────────┐        │
+│                          │     │💀 192.168.56.101 │        │
+│                          │     │vagrant:vagrant   │SHELL   │
+│                          │     │$ whoami vagrant  │        │
+│                          │     │$ hostname vm-01  │        │
+│                          │     └──────────────────┘        │
+│                          │                                  │
+│                          │     Download Reports              │
+│                          │     (hidden until done)           │
+├──────────────────────────┴──────────────────────────────────┤
+│            🔧 Remediation Tab (separate tab)                 │
+│            Finding list → Execute Fix → Plan preview         │
+│            → Apply → Live streaming output → Back            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -370,9 +380,14 @@ Open in browser and click 'Execute Audit' to begin
 | **Status Dot** | Dim gray = Ready, pulsing green = Running, cyan = Complete, red = Error |
 | **Execute Audit** | Starts a full audit. Disabled while running |
 
-### Log Panel (Left Side)
+### Main Panel — Tabs
 
-Real-time streaming feed of everything the agents are doing:
+The main panel has two tabs:
+
+- **📋 Agent Activity Log** — Real-time streaming feed of everything the agents are doing (thinking, commands, raw VBoxManage output, results, findings, vulnerabilities, compromise events)
+- **🔧 Remediation** — Separate tab showing findings list with severity and Execute Fix buttons. Clicking executes a two-phase flow: plan preview (generated by Claude from the finding's remediation text) → Apply button → live streaming of each VBoxManage command with raw output → final result with Back button.
+
+#### Agent Activity Log Entries
 
 - **Phase Indicators**: `01 Enumerate` · `02 Analyze` · `03 Exploit` · `04 Report` — each turns green when complete
 - **Thinking entries** (gold border, `⟐`) — the agent explaining what it's about to do and why (e.g., "Fingerprinting SSH on 192.168.56.101:22 — extracting version from banner and cross-referencing CVE database")
@@ -402,8 +417,8 @@ Summary card showing: Targets scanned, Services probed, CVE probes executed, Con
 #### Findings Summary
 2×3 grid: Total, Critical, High, Medium, Low, Info. Updates in real time.
 
-#### Findings & Remediation
-Expandable cards per finding. Collapsed view: severity badge, title, CVSS, Execute button, expand chevron. Expanded view: description, attack scenario, exploit PoC, attack chain, remediation, references, Execute Fix button.
+#### Findings
+Expandable cards per finding. Collapsed view: severity badge, title, CVSS, expand chevron. Expanded view: description, attack scenario, exploit PoC, attack chain (formatted as numbered steps). Remediation is in the dedicated **🔧 Remediation** tab.
 
 #### Compromised Hosts 💀
 Appears when post-exploitation succeeds. Per host:
@@ -415,7 +430,7 @@ Appears when post-exploitation succeeds. Per host:
 PDF / HTML / JSON — appear after audit completes.
 
 ### Running a Fix
-Click **Execute** on any finding. The `🔧 Remediator` agent streams thinking → commands → raw output → results. Button updates to `✓ Fixed` or `✗ Failed`.
+Switch to the **🔧 Remediation** tab and click **Execute Fix** on any finding. The `🔧 Remediator` agent first generates a plan (sends the finding to Claude to convert to VBoxManage commands) and shows a preview with each command. Click **Apply** to execute — streams thinking → commands → raw output → results in real time. Button updates to `✓ Fixed` or `✗ Failed`. Click `← Back to findings list` to return.
 
 ### Tips
 - Install nmap and hydra for enhanced scanning (auto-detected)
