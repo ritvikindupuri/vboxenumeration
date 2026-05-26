@@ -221,6 +221,8 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .exec-area{background:var(--bg-card);border-radius:8px;padding:14px;margin-bottom:20px;border:1px solid var(--border)}
 .exec-area .exec-text{font-size:12px;color:var(--text);line-height:1.8}
 .exec-area .exec-text strong{color:var(--accent-cyan)}
+.exec-area .exec-text h2{font-size:13px;font-weight:700;color:var(--accent-gold);margin-top:14px;margin-bottom:6px;letter-spacing:.3px}
+.exec-area .exec-text h3{font-size:12px;font-weight:700;color:var(--accent-cyan);margin-top:10px;margin-bottom:4px}
 .exec-area .exec-text ul{margin:6px 0;padding-left:20px;list-style:disc}
 .exec-area .exec-text li{font-size:12px;color:var(--text);margin-bottom:4px;line-height:1.6}
 .exec-area .exec-text p{margin-bottom:8px}
@@ -503,6 +505,10 @@ function mdToHtml(text) {
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   // *italic*
   html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  // # Headers
+  html = html.replace(/^### (.+)$/gm, "</p><h3>$1</h3><p>");
+  html = html.replace(/^## (.+)$/gm, "</p><h2>$1</h2><p>");
+  html = html.replace(/^# (.+)$/gm, "</p><h2>$1</h2><p>");
   // Bullet lines: "- " or "* " at line start
   var lines = html.split("\n");
   var out = [];

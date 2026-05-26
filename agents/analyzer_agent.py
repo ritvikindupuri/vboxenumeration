@@ -58,7 +58,7 @@ Return ONLY valid JSON:
     "highest_risk_component": "most vulnerable VM or component",
     "kill_chain": "Summarize the complete attack chain — from initial recon to full compromise — chaining multiple findings together in a realistic red team scenario"
   },
-  "executive_summary": "4-5 paragraph executive summary written as a red team engagement report. Describe the overall security posture, the most critical attack paths identified, the real-world impact of the vulnerabilities, and the recommended remediation priorities. Reference specific findings and how they chain together."
+  "executive_summary": "Structured executive summary written as a red team engagement report. Use markdown formatting: **Section Headers** for each major section, bullet points (-) for key findings, and spaced paragraphs. Structure it with these sections:\n**Attack Surface Overview** — 2-3 sentences summarizing the overall security posture and number of critical/high findings\n**Key Attack Paths** — bullet list of the most critical exploitation chains, referencing specific findings by name\n**Real-World Impact** — 2-3 sentences on what a successful attacker could achieve (data exfiltration, host compromise, lateral movement)\n**Remediation Priorities** — bullet list of the top 3-5 recommended actions ordered by severity\n\nExample format:\n**Attack Surface Overview**\n\nText here...\n\n**Key Attack Paths**\n\n- Bullet one\n- Bullet two\n\n**Real-World Impact**\n\nText here...\n\n**Remediation Priorities**\n\n- Priority one\n- Priority two"
 }
 """
 

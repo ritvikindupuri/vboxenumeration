@@ -117,22 +117,11 @@ class ReporterAgent(BaseAgent):
         pdf.set_font("Helvetica", "B", 26)
         pdf.set_text_color(*BLACK)
         pdf.cell(0, 14, "VBoxAuditor", align="L")
-        pdf.ln(2)
-        pdf.set_font("Helvetica", "", 11)
+        pdf.ln(8)
+        pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(*GRAY)
-        pdf.cell(0, 6, "VirtualBox Attack Surface Audit Report", align="L")
-        pdf.ln(6)
-        pdf.cell(0, 5, f"Generated: {report.get('generated_at', '')[:19]}", align="L")
-        pdf.ln(3)
-
-        summary = report.get("summary", {})
-        risk = summary.get("overall_risk", "N/A").lower()
-        rc = SEV_COLORS.get(risk, (100, 100, 100))
-        pdf.set_fill_color(*rc)
-        pdf.set_text_color(*WHITE)
-        pdf.set_font("Helvetica", "B", 10)
-        pdf.cell(0, 8, f"  Overall Risk: {summary.get('overall_risk', 'N/A')}  ", fill=True)
-        pdf.ln(12)
+        pdf.cell(0, 6, f"Generated: {report.get('generated_at', '')[:19]}", align="L")
+        pdf.ln(10)
 
         divider()
 
@@ -344,7 +333,7 @@ class ReporterAgent(BaseAgent):
             </tr>"""
 
         summary = report.get("summary", {})
-        vm_names = ", ".join(report.get("environment", {}).get("running_vms", []))
+        summary = report.get("summary", {})
 
         return f"""<!DOCTYPE html>
 <html lang="en">
@@ -357,7 +346,7 @@ class ReporterAgent(BaseAgent):
     .container {{ max-width: 1400px; margin: auto; }}
     h1 {{ background: linear-gradient(135deg,#00bcd4,#b388ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 28px; margin-bottom: 4px; }}
     h2 {{ color: #00e676; font-size: 20px; margin: 30px 0 12px; }}
-    .subtitle {{ color: #606080; margin-bottom: 30px; }}
+    .subtitle {{ color: #9090b0; margin-bottom: 30px; font-size: 14px; }}
     .summary-cards {{ display: flex; gap: 16px; margin-bottom: 30px; flex-wrap: wrap; }}
     .card {{ background: #111128; border-radius: 8px; padding: 20px; min-width: 140px; flex: 1; border: 1px solid #1e1e3a; }}
     .card h3 {{ font-size: 12px; color: #606080; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }}
@@ -387,10 +376,10 @@ class ReporterAgent(BaseAgent):
 <body>
 <div class="container">
     <h1>VBoxAuditor</h1>
-    <div class="subtitle">Attack Surface Audit &middot; {report.get('generated_at', '')[:19]} &middot; {report['environment']['vm_count']} VMs &middot; Running: {vm_names}</div>
+    <div class="subtitle">Generated: {report.get('generated_at', '')[:19]}</div>
 
     <h2>Executive Summary</h2>
-    <div class="exec-summary">{report.get('executive_summary', 'N/A')}<br><br><strong>Overall Risk: {summary.get('overall_risk', 'N/A')}</strong>
+    <div class="exec-summary">{report.get('executive_summary', 'N/A')}
     <div class="vectors">{''.join(f'<span class="vector">{v}</span>' for v in summary.get('primary_attack_vectors', []))}</div>
     </div>
 
