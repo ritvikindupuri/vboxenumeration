@@ -113,7 +113,7 @@ flowchart TB
 **4. Analysis Phase** — `AnalyzerAgent` sends all enumeration data (VM configs + active scan results + service banners + version fingerprints) to Claude with a red-team prompt. Claude returns structured findings with severity, CVSS, CVE IDs, exploit PoC commands, Metasploit module paths, attack chain narratives, and remediation steps.
 
 **5. Exploitation Phase** — `ExploiterAgent` runs 8 sub-phases (each with proper **thinking → command → raw output → result** streaming):
-   - **Phase 1 — CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes live Python socket-based exploit probes against each target — the actual Python command is displayed (`$ python -c "import socket; ..."`) followed by its raw socket output. If nmap is installed, runs `nmap -sV -sC` with full raw output displayed. If nmap is not installed, falls back to internal Python-based version fingerprinting and CVE probing (same analysis, no enhanced scan detail).
+   - **Phase 1 — CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes live Python socket-based exploit probes against each target — the actual Python command is displayed (`$ python -c "import socket; ..."`) followed by its raw socket output. If nmap is installed, runs `nmap -sV -sC` with full raw output displayed. If nmap is not installed, the agent extracts version numbers directly from the service banners already collected during the enumeration phase (the initial port scan already grabbed banners like `SSH-2.0-OpenSSH_7.6p1` or `Apache/2.4.49`), so you still get the same CVE matching — just without the extra detail nmap's NSE scripts would provide.
    - **Phase 2 — VM Config Attacks** — Per-VM audit of VRDP, clipboard, drag-and-drop, USB, audio, 3D acceleration, serial ports, guest additions with detailed attack technique descriptions for each finding.
    - **Phase 3 — VM Escape Detection** — Queries `VBoxManage --version` and cross-references the installed version against 14 known guest-to-host escape CVEs (CVE-2023-21991, CVE-2022-21489, CVE-2022-21303, CVE-2021-35544, etc.) with version range matching. Each match is emitted as a confirmed vulnerability.
    - **Phase 4 — Guest Addition Exploitation** — Runs `VBoxManage guestproperty enumerate` and `guestcontrol list` against VMs with Guest Additions, extracting OS details, user accounts, network config. Describes host-to-guest command execution and screenshot capture capabilities.
@@ -205,7 +205,7 @@ All scan results are streamed to the dashboard in real time alongside the VBoxMa
 | **Guest Addition Exploitation** | VBoxManage guestproperty enumerate + guestcontrol list — host-to-guest pivot |
 | **MITM Simulation** | ARP table + route table analysis — host-only network traffic interception |
 | **SSH Post-Exploitation** | paramiko |
-| **External Tool Detection** | nmap (`-sV -sC`), THC-Hydra (auto-detected) |
+| **External Tool Detection** | nmap (`-sV -sC`, auto-detected — falls back to banner-based fingerprinting if absent) |
 | **PDF Generation** | fpdf2 |
 | **Report Formats** | JSON, HTML, PDF |
 | **Environment** | python-dotenv |
@@ -254,7 +254,7 @@ You should see a version number like `7.0.x`.
 
 ### Optional: Install nmap
 
-VBoxAuditor auto-detects nmap and uses it for enhanced version scanning (`-sV -sC`) during the exploitation phase — raw nmap output is streamed directly to the dashboard. The tool gracefully falls back to Python socket-based fingerprinting if nmap is not installed.
+VBoxAuditor auto-detects nmap and uses it for enhanced version scanning (`-sV -sC`) during the exploitation phase — raw nmap output is streamed directly to the dashboard. If nmap is not installed, the agent still gets version numbers from the service banners already collected during the initial port scan (e.g., banners like `SSH-2.0-OpenSSH_7.6p1` or `Apache/2.4.49`), so CVE matching still works — you just won't get the extra detail from nmap's NSE scripts.
 
 **Install nmap:**
 
@@ -273,7 +273,7 @@ nmap --version
 ```
 You should see `Nmap version 7.95` (or similar).
 
-**Note:** If nmap is not installed, the exploiter agent falls back to internal Python-based service fingerprinting and CVE probing — same analysis, just without the enhanced version scan detail.
+**Note:** If nmap is not installed, the exploiter agent still gets version numbers from the service banners already grabbed during the initial port scan (e.g., `SSH-2.0-OpenSSH_7.6p1`, `Apache/2.4.49`) — same CVE matching, just without nmap's deeper NSE script analysis.
 
 ### Step 3: Clone the Repository
 
