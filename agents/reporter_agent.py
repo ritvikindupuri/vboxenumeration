@@ -10,9 +10,52 @@ logger = logging.getLogger(__name__)
 REPORT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
 
+import re
+
 class ReporterAgent(BaseAgent):
     def __init__(self):
         super().__init__("reporter")
+
+    @staticmethod
+    def _md_to_html(text: str) -> str:
+        if not text:
+            return ""
+        html = text
+        # Escape HTML chars
+        html = html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        lines = html.split("\n")
+        out = []
+        in_list = False
+        for line in lines:
+            # Standalone **Header** on its own line
+            sh = re.match(r"^\*\*(.+?)\*\*$", line)
+            if sh:
+                if in_list: out.append("</ul>"); in_list = False
+                out.append(f"<h2>{sh.group(1)}</h2>")
+                continue
+            # # headers
+            hm = re.match(r"^(#{1,3})\s+(.+)$", line)
+            if hm:
+                if in_list: out.append("</ul>"); in_list = False
+                tag = "h3" if len(hm.group(1)) == 3 else "h2"
+                out.append(f"<{tag}>{hm.group(2)}</{tag}>")
+                continue
+            # Inline bold/italic
+            line = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", line)
+            line = re.sub(r"\*(.+?)\*", r"<em>\1</em>", line)
+            # Bullet
+            bm = re.match(r"^[\s]*[-*]\s+(.*)", line)
+            if bm:
+                if not in_list: out.append("<ul>"); in_list = True
+                out.append(f"<li>{bm.group(1)}</li>")
+            else:
+                if in_list: out.append("</ul>"); in_list = False
+                if line.strip() == "":
+                    out.append("</p><p>")
+                else:
+                    out.append(line)
+        if in_list: out.append("</ul>")
+        return "<p>" + "".join(out) + "</p>"
 
     def run(self, context: dict) -> dict:
         os.makedirs(REPORT_DIR, exist_ok=True)
@@ -131,9 +174,32 @@ class ReporterAgent(BaseAgent):
 
         # ===================== 1. EXECUTIVE SUMMARY =====================
         section_header("1", "Executive Summary")
-        pdf.set_font("Helvetica", "", 10)
-        pdf.set_text_color(*DARK)
-        pdf.multi_cell(0, 5.2, report.get("executive_summary", "N/A"))
+        exec_text = report.get("executive_summary", "N/A")
+        for line in exec_text.split("\n"):
+            stripped = line.strip()
+            if not stripped:
+                pdf.ln(3)
+                continue
+            # Standalone **Section Header**
+            sh = re.match(r"^\*\*(.+?)\*\*$", stripped)
+            if sh:
+                pdf.set_font("Helvetica", "B", 12)
+                pdf.set_text_color(*BLACK)
+                pdf.cell(0, 7, sh.group(1))
+                pdf.ln(8)
+                continue
+            # Bullet line
+            if stripped.startswith("- ") or stripped.startswith("* "):
+                pdf.set_font("Helvetica", "", 10)
+                pdf.set_text_color(*DARK)
+                pdf.cell(5)
+                pdf.cell(0, 5.5, "  - " + stripped[2:])
+                pdf.ln(5.5)
+                continue
+            # Regular text
+            pdf.set_font("Helvetica", "", 10)
+            pdf.set_text_color(*DARK)
+            pdf.multi_cell(0, 5.2, stripped)
         pdf.ln(4)
 
         vectors = summary.get("primary_attack_vectors", [])
@@ -371,7 +437,12 @@ class ReporterAgent(BaseAgent):
     .severity.low {{ background: rgba(0,188,212,.15); color: #00bcd4; }}
     .severity.info {{ background: rgba(96,96,128,.15); color: #606080; }}
     .exec-summary {{ background: #111128; border-radius: 8px; padding: 24px; line-height: 1.7; border: 1px solid #1e1e3a; }}
+    .exec-summary h2 {{ color: #ffd740; font-size: 16px; margin: 18px 0 8px; }}
+    .exec-summary h3 {{ color: #00bcd4; font-size: 14px; margin: 14px 0 6px; }}
     .exec-summary strong {{ color: #ff6f3c; }}
+    .exec-summary ul {{ margin: 8px 0; padding-left: 22px; }}
+    .exec-summary li {{ margin-bottom: 4px; font-size: 13px; }}
+    .exec-summary p {{ margin-bottom: 10px; }}
     .footer {{ margin-top: 40px; color: #404060; font-size: 12px; text-align: center; }}
     .vectors {{ display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }}
     .vector {{ background: rgba(255,111,60,.08); border: 1px solid rgba(255,111,60,.15); color: #ff6f3c; padding: 4px 10px; border-radius: 4px; font-size: 11px; }}
@@ -383,7 +454,7 @@ class ReporterAgent(BaseAgent):
     <div class="subtitle">VirtualBox Attack Surface Audit Report &middot; Generated: {report.get('generated_at', '')[:19]}</div>
 
     <h2>Executive Summary</h2>
-    <div class="exec-summary">{report.get('executive_summary', 'N/A')}
+    <div class="exec-summary">{self._md_to_html(report.get('executive_summary', 'N/A'))}
     <div class="vectors">{''.join(f'<span class="vector">{v}</span>' for v in summary.get('primary_attack_vectors', []))}</div>
     </div>
 
