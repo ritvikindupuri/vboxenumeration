@@ -599,10 +599,10 @@ function renderFindings(data) {
         (f.exploit_poc ? '<div class="section-label">Exploit PoC</div><pre class="exploit-code">' + esc(f.exploit_poc) + "</pre>" : "") +
         (f.attack_chain ? '<div class="section-label">Attack Chain</div><div class="attack-chain">' + esc(f.attack_chain) + "</div>" : "") +
         '<div class="section-label">Remediation</div>' +
-        '<div class="remediation">' + esc(f.remediation || "N/A") + "</div>" +
+        '<div class="remediation">' + (f.remediation ? f.remediation.split("\n").filter(s => s.trim()).map(s => "• " + esc(s.trim())).join("<br>") : "N/A") + "</div>" +
         '<div class="section-label">References</div>' +
-        '<div class="refs">' + esc((f.references || []).join("\n")) + "</div>" +
-        '<div class="finding-body-actions"><button class="remediation-btn finding-exec-btn" data-finding-id="' + f.id + '" onclick="event.stopPropagation();remediate(this)">Execute Fix</button></div>' +
+        '<div class="refs">' + (f.references ? f.references.map(function(r) { return esc(r); }).join("<br>") : "N/A") + "</div>" +
+        '<div class="finding-body-actions"><button class="remediation-btn finding-exec-btn" data-finding-id="' + esc(f.id || '') + '" onclick="event.stopPropagation();remediate(this)">Execute Fix</button></div>' +
       "</div></div>";
     list.appendChild(card);
   });
