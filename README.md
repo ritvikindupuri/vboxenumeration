@@ -2,6 +2,8 @@
 
 **VirtualBox Attack Surface Enumeration, Active Exploitation & Remediation Tool**
 
+> **Full technical documentation available at [`TECHNICAL_DOCUMENTATION.md`](TECHNICAL_DOCUMENTATION.md)** — covers system architecture, detailed agent breakdowns, exploitation engine internals, WebSocket event system, report generation, and complete feature documentation.
+
 VBoxAuditor is a red-team security auditing tool that automatically enumerates, analyzes, **actively exploits**, and remediates VirtualBox hypervisor misconfigurations. It deploys autonomous AI agents to scan your VirtualBox environment, identify security weaknesses, **prove compromise via real SSH post-exploitation**, and guide remediation — all through a real-time web dashboard with kill chain visualization.
 
 ---
