@@ -11,3 +11,6 @@ build/
 .idea/
 *.log
 data/agent_logs/
+data/*.json
+data/*.html
+data/*.pdf
