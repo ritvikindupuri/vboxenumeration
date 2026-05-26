@@ -562,6 +562,14 @@ function addEntry(agent, type, data) {
         (data.attack_scenario ? '<div class="finding-attack"><span class="finding-label">Attack Scenario</span> ' + esc(data.attack_scenario) + "</div>" : "") +
       "</div>";
   }
+
+  // Agent badge + timestamp header
+  const time = new Date().toLocaleTimeString("en-US", { hour12: true, hour: "numeric", minute: "2-digit", second: "2-digit" });
+  const badgeHtml = '<span class="agent-badge ' + info.cls + '"><span class="agent-icon">' + info.icon + '</span> ' + info.label + '</span><span class="entry-time">' + time + '</span>';
+
+  el.innerHTML = badgeHtml + msgHtml;
+  logStream.appendChild(el);
+  logStream.scrollTop = logStream.scrollHeight;
 }
 
 let findingDataMap = {};
