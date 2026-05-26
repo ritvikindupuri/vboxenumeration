@@ -198,6 +198,42 @@ flowchart TB
 
 ### 4.2 Component Descriptions
 
+#### Application Entry Point (`main.py`)
+The `main.py` file is the application entry point. It performs the following startup sequence:
+1. Loads environment variables from `.env` using `python-dotenv` (`load_dotenv()`).
+2. Validates that `ANTHROPIC_API_KEY` is set — exits with an error message if missing.
+3. Creates a `ClaudeClient` instance using the API key and optional model override (`ANTHROPIC_MODEL` env var, defaults to `claude-sonnet-4-20250514`).
+4. Creates an `AuditEngine` instance, passing in the Claude client.
+5. Reads `DASHBOARD_HOST` and `DASHBOARD_PORT` environment variables (defaults: `0.0.0.0:8080`).
+6. Logs the dashboard URL and calls `start_dashboard(engine)` which starts the Flask server.
+7. Handles `KeyboardInterrupt` for clean shutdown on Ctrl+C.
+8. A companion utility script `shutdown.ps1` is provided for terminating the application by process name or port number — useful when the terminal is closed or the process is running in the background.
+
+#### Audit Engine (`core/engine.py`)
+The `AuditEngine` class (`core/engine.py`) is the central orchestrator that manages the entire audit pipeline. It:
+
+- **Initialization**: Creates all five agent instances (Enumerator, Analyzer, Exploiter, Reporter, Remediator). Registers event callback handlers on the four pipeline agents (not the Remediator, which uses a fresh handler per remediation run).
+- **Event Queue**: Maintains an internal `Queue` that collects all agent events. Each agent emits events via `BaseAgent.emit()`, which calls `_handle_event()` to push `{agent, type, data}` JSON objects into the queue.
+- **Event Broadcasting**: An `on_event()` handler is registered by the dashboard to receive events from the queue. The handler intercepts queue puts to broadcast events to WebSocket clients in real time.
+- **Pipeline Execution**: `run_audit()` runs the 4-phase pipeline sequentially: Enumeration → Analysis → Exploitation → Reporting. Each phase stores results in a shared `context` dictionary passed between agents. The method is thread-safe and sets `_running = False` in a `finally` block.
+- **Remediation Execution**: `run_remediation()` creates a fresh event handler for the Remediator Agent and calls `remediator.remediate(finding)`, allowing independent event streaming for the remediation workflow.
+
+#### VBoxController (`core/vbox_controller.py`)
+The `VBoxController` class provides a Python wrapper around the `VBoxManage.exe` command-line interface. It:
+
+- **VBoxManage Discovery**: Automatically locates VBoxManage.exe at startup by checking common installation paths (`C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`, the `VBOX_INSTALL_PATH` environment variable, and the system PATH).
+- **Command Execution**: The `run()` method takes a variable-length argument list (e.g., `run("list", "vms")`) and executes it as a subprocess using `subprocess.Popen` with `capture_output=True` and `text=True`.
+- **Output Parsing**: Returns raw stdout/stderr as strings. Individual agents are responsible for parsing the output into structured data (e.g., splitting lines, extracting key-value pairs from `showvminfo` output).
+- **Error Handling**: Captures non-zero exit codes and returns them alongside output text, allowing agents to handle errors gracefully.
+
+#### ClaudeClient (`core/claude_client.py`)
+The `ClaudeClient` class provides a wrapper around the Anthropic Claude REST API. It:
+
+- **Authentication**: Stores the API key and model name from environment configuration.
+- **Query Method**: The `query()` method accepts a system prompt and user message, sends them to the Claude API via the `anthropic` Python SDK, and returns the response text.
+- **Configuration**: Uses configurable model (defaults to `claude-sonnet-4-20250514`), temperature, and max tokens for response generation.
+- **Error Handling**: Wraps API calls in try/except blocks and logs errors for troubleshooting.
+
 #### Flask Server (`dashboard/app.py`)
 The Flask server serves the single-page dashboard at `http://localhost:8080` and hosts a WebSocket endpoint at `/ws`. It manages the audit pipeline lifecycle, client connections, and event broadcasting. The server runs with `use_reloader=False` to prevent duplicate background threads.
 
