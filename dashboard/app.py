@@ -79,8 +79,7 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 #log-stream{flex:1;overflow-y:auto;padding:8px 16px}
 
 /* Log entries */
-.entry{margin-bottom:4px;padding:8px 12px;border-radius:6px;font-size:13px;line-height:1.5;opacity:0;transform:translateY(6px);transition:opacity .2s ease,transform .2s ease}
-.entry.visible{opacity:1;transform:translateY(0)}
+.entry{margin-bottom:4px;padding:8px 12px;border-radius:6px;font-size:13px;line-height:1.5}
 .entry.thinking{background:rgba(255,215,64,.04);border-left:2px solid var(--accent-gold)}
 .entry.command{background:rgba(0,188,212,.04);border-left:2px solid var(--accent-cyan)}
 .entry.output{background:rgba(96,96,128,.04);border-left:2px solid var(--text-dim)}
@@ -116,9 +115,9 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .entry-finding .finding-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--accent-green);display:inline-block;margin-top:4px;margin-bottom:2px}
 .entry-finding .finding-remediation{font-size:12px;color:var(--accent-green);line-height:1.6;white-space:pre-line;margin-bottom:4px}
 .entry-finding .finding-attack{font-size:12px;color:var(--accent-orange);font-style:italic;line-height:1.5}
-.finding-body-actions{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);display:flex;gap:6px}
+
 .finding-exec-btn{margin-left:0!important}
-.agent-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.agent-badge{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:.3px}
 .agent-badge.enumerator{background:rgba(255,111,60,.15);color:var(--accent-orange)}
 .agent-badge.analyzer{background:rgba(0,188,212,.15);color:var(--accent-cyan)}
 .agent-badge.reporter{background:rgba(0,230,118,.15);color:var(--accent-green)}
@@ -126,8 +125,9 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .agent-badge.remediator{background:rgba(255,215,64,.15);color:var(--accent-gold)}
 .agent-badge.system{background:rgba(179,136,255,.15);color:var(--accent-purple)}
 .agent-icon{font-size:12px}
-.entry-time{font-size:10px;color:var(--text-dim);margin-left:6px}
-.entry-msg{margin-top:3px;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.entry-sep{font-size:10px;color:var(--text-dim)}
+.entry-time{font-size:10px;color:var(--text-dim)}
+.entry-msg{margin-top:3px;padding-left:4px;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .entry-msg .highlight{color:var(--accent-green)}
 .entry-msg .warn{color:var(--accent-orange)}
 .entry-msg .danger{color:var(--accent-red)}
@@ -169,12 +169,6 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .finding-card.info{border-left:3px solid var(--text-dim)}
 .finding-header{display:flex;align-items:center;gap:8px;padding:10px 12px}
 .finding-header:hover{background:rgba(255,255,255,.02)}
-.remediation-btn{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;padding:3px 8px;border-radius:4px;border:none;background:rgba(0,230,118,.14);color:var(--accent-green);cursor:pointer;white-space:nowrap;margin-left:auto;font-family:inherit;transition:.2s;line-height:normal}
-.remediation-btn:hover:not(:disabled){background:rgba(0,230,118,.25);transform:translateY(-1px)}
-.remediation-btn:disabled{cursor:not-allowed;opacity:.7}
-.remediation-btn.running{background:rgba(255,215,64,.14);color:var(--accent-gold);animation:pulse 1s infinite}
-.remediation-btn.done{background:rgba(0,230,118,.2);color:var(--accent-green);cursor:default}
-.remediation-btn.failed{background:rgba(255,23,68,.14);color:var(--accent-red);cursor:default}
 .remediation-list{display:flex;flex-direction:column;gap:4px}
 .remediation-item{display:flex;align-items:center;gap:8px;background:var(--bg-card);border-radius:6px;padding:8px 10px;border:1px solid var(--border);font-size:11px}
 .remediation-item .r-icon{font-size:12px}
@@ -211,6 +205,10 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .finding-chain{font-size:12px;color:var(--accent-orange);line-height:1.5;margin-top:4px;padding:4px 8px;background:rgba(255,111,60,.06);border-radius:4px;border-left:2px solid var(--accent-orange)}
 .exploit-code{background:rgba(0,0,0,.25);padding:8px 10px;border-radius:4px;font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);white-space:pre-wrap;word-break:break-word;line-height:1.5;border:1px solid rgba(255,255,255,.04);overflow-x:auto;margin:4px 0}
 .attack-chain{font-size:12px;color:var(--accent-orange);line-height:1.5;padding:4px 8px;background:rgba(255,111,60,.06);border-radius:4px;border-left:2px solid var(--accent-orange);margin:4px 0}
+.chain-step{display:flex;align-items:baseline;gap:8px;padding:3px 0}
+.chain-step+.chain-step{border-top:1px solid rgba(255,111,60,.12)}
+.chain-num{flex-shrink:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:var(--accent-orange);color:#fff;border-radius:50%;font-size:10px;font-weight:700}
+.chain-text{color:var(--text-primary);font-size:12px}
 
 /* Download area */
 .download-area{margin-top:16px}
@@ -294,9 +292,53 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .shell-output-header{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:10px;color:var(--text-dim);margin-top:2px}
 .shell-output-header .shell-ip{color:var(--accent-green);font-weight:600}
 
+/* Tabs */
+.tabs{display:flex;gap:0;align-items:stretch}
+.tab{padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;color:var(--text-dim);transition:.2s;user-select:none;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent-cyan);border-bottom-color:var(--accent-cyan)}
+.tab-panel{display:none;flex:1;overflow:hidden;flex-direction:column}
+.tab-panel.active{display:flex}
+
+/* Remediation panel */
+#rem-findings-list{overflow-y:auto;padding:8px 12px;flex:1}
+.rem-finding-card{background:var(--bg-card);border-radius:8px;border:1px solid var(--border);padding:10px 12px;margin-bottom:6px}
+.rem-finding-card.critical{border-left:3px solid var(--accent-red)}
+.rem-finding-card.high{border-left:3px solid var(--accent-orange)}
+.rem-finding-card.medium{border-left:3px solid var(--accent-gold)}
+.rem-finding-card.low{border-left:3px solid var(--accent-cyan)}
+.rem-finding-card.info{border-left:3px solid var(--text-dim)}
+.rem-finding-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.rem-finding-title{font-size:12px;font-weight:500;color:var(--text);flex:1}
+.rem-exec-btn{font-size:9px;font-weight:600;padding:4px 10px;border-radius:4px;border:none;background:rgba(0,230,118,.14);color:var(--accent-green);cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
+.rem-exec-btn:hover:not(:disabled){background:rgba(0,230,118,.25)}
+.rem-exec-btn:disabled{cursor:not-allowed;opacity:.7}
+.rem-exec-btn.running{background:rgba(255,215,64,.14);color:var(--accent-gold);animation:pulse 1s infinite}
+.rem-exec-btn.done{background:rgba(0,230,118,.2);color:var(--accent-green);cursor:default}
+.rem-exec-btn.failed{background:rgba(255,23,68,.14);color:var(--accent-red);cursor:default}
+.rem-finding-remediation{font-size:11px;color:var(--accent-green);line-height:1.4;margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.1);border-radius:4px;white-space:pre-wrap}
+#rem-output-area{margin:8px 12px;padding:10px;background:var(--bg-card);border-radius:8px;border:1px solid var(--accent-gold);max-height:none;overflow-y:visible}
+#rem-output-container{font-size:12px}
+#rem-output-container .rc-step{margin-bottom:3px}
+#rem-back-btn{font-size:10px;color:var(--accent-cyan);cursor:pointer;margin-bottom:8px;display:inline-block}
+
+/* In-card remediation output */
+.remediation-output{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
+.rc-step{padding:4px 8px;border-radius:4px;font-size:12px;line-height:1.5;margin-bottom:2px}
+.rc-step.rc-thinking{background:rgba(255,215,64,.04);border-left:2px solid var(--accent-gold)}
+.rc-step.rc-command{background:rgba(0,188,212,.04);border-left:2px solid var(--accent-cyan);font-family:'JetBrains Mono','Fira Code',monospace;font-size:11px}
+.rc-step.rc-command code{background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold)}
+.rc-step.rc-output{background:rgba(96,96,128,.04);border-left:2px solid var(--text-dim);font-family:'JetBrains Mono','Fira Code',monospace;font-size:10px;color:var(--text-dim);padding:4px 8px 4px 16px;margin-left:4px}
+.rc-step.rc-result{background:rgba(0,230,118,.04);border-left:2px solid var(--accent-green)}
+.rc-preview{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:6px}
+.rc-preview .rc-preview-header{font-size:11px;font-weight:600;color:var(--text);margin-bottom:4px}
+.rc-preview .rc-preview-cmd{font-size:11px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);background:rgba(0,0,0,.15);padding:6px 8px;border-radius:4px;white-space:pre-wrap;word-break:break-word;margin-top:4px}
+.apply-remediation-btn{display:block;width:100%;padding:8px;margin-top:8px;margin-bottom:8px;background:linear-gradient(135deg,var(--accent-green),#00c853);color:#000;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+.apply-remediation-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,230,118,.3)}
+.apply-remediation-btn:disabled{opacity:.5;cursor:not-allowed}
+
 /* Scrollbar */
 ::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 ::-webkit-scrollbar-thumb:hover{background:var(--text-dim)}
 </style>
@@ -321,7 +363,10 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
   <!-- Log Panel -->
   <div id="log-panel">
     <div id="log-header">
-      <h3>Agent Activity Log</h3>
+      <div class="tabs">
+        <span class="tab active" data-tab="activity" onclick="switchTab('activity')">📋 Agent Activity Log</span>
+        <span class="tab" data-tab="remediation" onclick="switchTab('remediation')">🔧 Remediation</span>
+      </div>
       <div id="phase-indicator">
         <span class="phase" id="phase-enum">01 Enumerate</span>
         <span class="phase" id="phase-analyze">02 Analyze</span>
@@ -329,11 +374,24 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
         <span class="phase" id="phase-report">04 Report</span>
       </div>
     </div>
-    <div id="log-stream">
-      <div id="empty-state">
-        <div class="hero-icon">▣</div>
-        <h2>Ready to scan attack surface</h2>
-        <p>Click <strong>Execute Audit</strong> to deploy autonomous agents that will enumerate, analyze, and report on VirtualBox security misconfigurations from an attacker's perspective.</p>
+    <div id="tab-activity" class="tab-panel active">
+      <div id="log-stream">
+        <div id="empty-state">
+          <div class="hero-icon">▣</div>
+          <h2>Ready to scan attack surface</h2>
+          <p>Click <strong>Execute Audit</strong> to deploy autonomous agents that will enumerate, analyze, and report on VirtualBox security misconfigurations from an attacker's perspective.</p>
+        </div>
+      </div>
+    </div>
+    <div id="tab-remediation" class="tab-panel">
+      <div id="rem-findings-list"></div>
+      <div id="rem-output-area" style="display:none">
+        <div id="rem-output-container"></div>
+      </div>
+      <div id="rem-empty-state" style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-dim);text-align:center;padding:40px">
+        <div style="font-size:48px;margin-bottom:16px">🔧</div>
+        <h2 style="color:var(--text);font-size:18px;font-weight:600;margin-bottom:8px">No findings yet</h2>
+        <p style="color:var(--text-dim);font-size:13px;max-width:350px;line-height:1.6">Run an audit first. Findings that need remediation will appear here with the ability to execute fixes.</p>
       </div>
     </div>
   </div>
@@ -383,7 +441,7 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 
     <!-- Findings -->
     <div class="sidebar-section">
-      <div class="section-title">Findings &amp; Remediation <span style="font-weight:400;color:var(--text-dim);font-size:8px;letter-spacing:0;text-transform:none">(click to expand)</span></div>
+      <div class="section-title">Findings <span style="font-weight:400;color:var(--text-dim);font-size:8px;letter-spacing:0;text-transform:none">(click to expand)</span></div>
       <div class="findings-list" id="findingsList"></div>
     </div>
 
@@ -436,10 +494,25 @@ function esc(s) {
   return d.innerHTML;
 }
 
+function formatAttackChain(chain) {
+  if (!chain) return "";
+  return chain.split(/\s*->\s*/).filter(Boolean).map(function(step, i) {
+    return '<div class="chain-step"><span class="chain-num">' + (i + 1) + '</span><span class="chain-text">' + esc(step.trim()) + '</span></div>';
+  }).join("");
+}
+
 // Event queue for slow streaming
 const eventQueue = [];
 let processing = false;
-const STREAM_DELAY = 250; // ms between entries
+const STREAM_DELAY = 800; // ms between entries — slowed for readability
+
+// Track last command entry for grouping output beneath it
+let _lastCmdEntry = null;
+
+// In-card remediation tracking
+let _activeRemediationContainer = null;
+let _activeRemediationPlan = null;
+let _cardLastCmdEl = null;
 
 const wsProto = location.protocol === "https:" ? "wss:" : "ws:";
 const ws = new WebSocket(wsProto + "//" + location.host + "/ws");
@@ -466,12 +539,26 @@ function processNext() {
   processing = true;
   const msg = eventQueue.shift();
 
+  // Remediation events route to remediation tab only, NOT main log
+  if (msg.agent === "remediator") {
+    if (["thinking","command","output","result"].includes(msg.type)) {
+      if (_activeRemediationContainer) {
+        renderRemediationToCard(msg.type, msg.data);
+      }
+      // Skip main log for these event types
+      setTimeout(processNext, STREAM_DELAY);
+      return;
+    }
+    // remediation_plan, remediation_complete fall through to normal handlers
+  }
+
   if (msg.type === "status") { updateStatus(msg.data); }
   else if (msg.type === "summary") { updateSummary(msg.data); }
   else if (msg.type === "findings") { renderFindings(msg.data); }
   else if (msg.type === "complete") { onComplete(msg.data); }
   else if (msg.type === "executive") { renderExecutive(msg.data); }
   else if (msg.type === "error") { addEntry(msg.agent, "error", msg.data); }
+  else if (msg.type === "remediation_plan") { onRemediationPlan(msg.data); }
   else if (msg.type === "remediation_complete") { onRemediationComplete(msg.data); }
   else if (msg.type === "kill_chain") { renderKillChain(msg.data); }
   else if (msg.type === "vulnerability") { addVulnerabilityEntry(msg.data); }
@@ -497,6 +584,9 @@ function addEntry(agent, type, data) {
   else if (agent === "reporter" && type === "thinking") setPhase("report", "active");
   else if (agent === "reporter" && type === "result") setPhase("report", "done");
 
+  // Clear last command entry on non-output events (avoids stale grouping)
+  if (type !== "output") _lastCmdEntry = null;
+
   // Group output with previous command from same agent
   if (type === "output" && _lastCmdEntry && _lastCmdEntry.agent === agent) {
     const outDiv = document.createElement("div");
@@ -515,6 +605,7 @@ function addEntry(agent, type, data) {
     msgHtml = '<div class="entry-msg"><span class="info">⟐</span> ' + esc(data.message || "") + "</div>";
   } else if (type === "command") {
     msgHtml = '<div class="entry-msg"><span class="warn">$</span> <code>' + esc(data.command || "") + "</code></div>";
+    _lastCmdEntry = { agent: agent, el: el };
   } else if (type === "output") {
     msgHtml = '<div class="entry-msg">' + esc(data.output || "") + "</div>";
   } else if (type === "result") {
@@ -563,23 +654,141 @@ function addEntry(agent, type, data) {
       "</div>";
   }
 
-  // Agent badge + timestamp header
+  // Agent badge + timestamp header with separator
   const time = new Date().toLocaleTimeString("en-US", { hour12: true, hour: "numeric", minute: "2-digit", second: "2-digit" });
-  const badgeHtml = '<span class="agent-badge ' + info.cls + '"><span class="agent-icon">' + info.icon + '</span> ' + info.label + '</span><span class="entry-time">' + time + '</span>';
+  const badgeHtml = '<span class="agent-badge ' + info.cls + '">' + info.icon + ' ' + info.label + '</span><span class="entry-sep"> · </span><span class="entry-time">' + time + '</span>';
 
   el.innerHTML = badgeHtml + msgHtml;
   logStream.appendChild(el);
   logStream.scrollTop = logStream.scrollHeight;
 }
 
+// ===== MISSING UTILITY FUNCTIONS =====
+
+function setPhase(name, state) {
+  var el = document.getElementById("phase-" + name);
+  if (el) {
+    el.classList.remove("active","done");
+    el.classList.add(state);
+  }
+}
+
+function updateStatus(data) {
+  var dot = document.getElementById("statusDot");
+  var text = document.getElementById("statusText");
+  var btn = document.getElementById("execBtn");
+  if (!dot || !text) return;
+  dot.className = "status-dot";
+  if (data.status === "running") {
+    dot.classList.add("running");
+    text.textContent = "Running...";
+  } else if (data.status === "done") {
+    dot.classList.add("done");
+    text.textContent = "Complete";
+    if (btn) { btn.disabled = false; btn.textContent = "▲ Execute Audit"; }
+  } else if (data.status === "error") {
+    dot.classList.add("error");
+    text.textContent = "Error";
+    if (btn) { btn.disabled = false; btn.textContent = "▲ Execute Audit"; }
+  } else {
+    dot.classList.add("ready");
+    text.textContent = "Ready";
+  }
+}
+
+function updateSummary(data) {
+  var setVal = function(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val || "0";
+  };
+  setVal("s-total", data.total_findings);
+  setVal("s-critical", data.critical);
+  setVal("s-high", data.high);
+  setVal("s-medium", data.medium);
+  setVal("s-low", data.low);
+  setVal("s-info", data.info);
+}
+
+function renderExecutive(data) {
+  var section = document.getElementById("execSection");
+  var textEl = document.getElementById("execText");
+  var riskEl = document.getElementById("riskTag");
+  var vectorEl = document.getElementById("vectorList");
+  if (!section || !textEl) return;
+  section.style.display = "block";
+  textEl.textContent = data.executive_summary || "";
+  if (riskEl) {
+    var risk = (data.overall_risk || "N/A").toLowerCase();
+    riskEl.className = "risk-tag " + risk;
+    riskEl.textContent = "Overall Risk: " + (data.overall_risk || "N/A");
+  }
+  if (vectorEl) {
+    vectorEl.innerHTML = "";
+    (data.primary_attack_vectors || []).forEach(function(v) {
+      var tag = document.createElement("span");
+      tag.className = "vector-tag";
+      tag.textContent = v;
+      vectorEl.appendChild(tag);
+    });
+  }
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
+}
+
+function remediateFromTab(findingId) {
+  var finding = findingDataMap[findingId];
+  if (!finding) return;
+
+  var list = document.getElementById('rem-findings-list');
+  var outputArea = document.getElementById('rem-output-area');
+  var container = document.getElementById('rem-output-container');
+  var backBtn = document.getElementById('rem-back-btn');
+
+  // Show output area, hide findings list
+  list.style.display = 'none';
+  outputArea.style.display = 'block';
+  container.innerHTML = '<div style="margin-bottom:6px;font-size:11px;font-weight:600;color:var(--accent-gold)">' + esc(finding.title) + '</div><div class="rc-step rc-thinking"><span class="info">⟐</span> Generating remediation plan...</div>';
+  _activeRemediationContainer = container;
+  _activeRemediationPlan = null;
+  _cardLastCmdEl = null;
+
+  // Update Execute button in rem-findings-list
+  var btns = document.querySelectorAll('.rem-exec-btn[data-finding-id="' + findingId + '"]');
+  btns.forEach(function(b) { b.disabled = true; b.textContent = "Planning..."; b.className = "rem-exec-btn running"; });
+
+  ws.send(JSON.stringify({cmd: "plan_remediation", finding: finding}));
+}
+
+function backToRemList() {
+  _activeRemediationContainer = null;
+  _activeRemediationPlan = null;
+  _cardLastCmdEl = null;
+  document.getElementById('rem-findings-list').style.display = 'block';
+  document.getElementById('rem-output-area').style.display = 'none';
+}
+
+// =====
+
 let findingDataMap = {};
 
 function renderFindings(data) {
   const list = document.getElementById("findingsList");
   list.innerHTML = "";
+  // Also populate remediation tab
+  const remList = document.getElementById("rem-findings-list");
+  remList.innerHTML = "";
+  var remEmpty = document.getElementById("rem-empty-state");
+  if (remEmpty) remEmpty.style.display = "none";
   (data.findings || []).forEach(f => {
     findingDataMap[f.id] = f;
     const sev = (f.severity || "info").toLowerCase();
+
+    // Sidebar card (no Execute button — remediation moved to tab)
     const card = document.createElement("div");
     card.className = "finding-card " + sev;
     card.dataset.findingId = f.id;
@@ -589,7 +798,6 @@ function renderFindings(data) {
         '<span class="finding-title">' + esc(f.title) + "</span>" +
         '<span class="cvss-tag">CVSS ' + (f.cvss_score || "N/A") + "</span>" +
         (f.cve ? '<span class="cve-badge">' + esc(f.cve) + "</span>" : "") +
-        '<button class="remediation-btn" data-finding-id="' + f.id + '" onclick="event.stopPropagation();remediate(this)">Execute</button>' +
         '<span class="expand-icon">▼</span>' +
       "</div>" +
       '<div class="finding-body"><div class="finding-body-inner">' +
@@ -597,14 +805,22 @@ function renderFindings(data) {
         '<div class="section-label">Attack Scenario</div>' +
         '<div class="attack-scenario">' + esc(f.attack_scenario || "N/A") + "</div>" +
         (f.exploit_poc ? '<div class="section-label">Exploit PoC</div><pre class="exploit-code">' + esc(f.exploit_poc) + "</pre>" : "") +
-        (f.attack_chain ? '<div class="section-label">Attack Chain</div><div class="attack-chain">' + esc(f.attack_chain) + "</div>" : "") +
-        '<div class="section-label">Remediation</div>' +
-        '<div class="remediation">' + (f.remediation ? f.remediation.split("\n").filter(s => s.trim()).map(s => "• " + esc(s.trim())).join("<br>") : "N/A") + "</div>" +
-        '<div class="section-label">References</div>' +
-        '<div class="refs">' + (f.references ? f.references.map(function(r) { return esc(r); }).join("<br>") : "N/A") + "</div>" +
-        '<div class="finding-body-actions"><button class="remediation-btn finding-exec-btn" data-finding-id="' + esc(f.id || '') + '" onclick="event.stopPropagation();remediate(this)">Execute Fix</button></div>' +
+        (f.attack_chain ? '<div class="section-label">Attack Chain</div><div class="attack-chain">' + formatAttackChain(f.attack_chain) + "</div>" : "") +
       "</div></div>";
     list.appendChild(card);
+
+    // Remediation tab entry
+    var remCard = document.createElement("div");
+    remCard.className = "rem-finding-card " + sev;
+    remCard.innerHTML =
+      '<div class="rem-finding-header">' +
+        '<span class="sev-badge ' + sev + '">' + (f.severity || "INFO") + "</span>" +
+        '<span class="rem-finding-title">' + esc(f.title) + "</span>" +
+        '<span class="cvss-tag">CVSS ' + (f.cvss_score || "N/A") + "</span>" +
+        '<button class="rem-exec-btn" data-finding-id="' + f.id + '" onclick="remediateFromTab(\'' + f.id + '\')">Execute Fix</button>' +
+      "</div>" +
+      '<div class="rem-finding-remediation">' + (f.remediation ? f.remediation.split("\n").filter(function(s) { return s.trim(); }).map(function(s) { return "• " + esc(s.trim()); }).join("<br>") : "N/A") + "</div>";
+    remList.appendChild(remCard);
   });
 }
 
@@ -612,35 +828,163 @@ function toggleFinding(header) {
   header.parentElement.classList.toggle("expanded");
 }
 
-function remediate(btn) {
-  const findingId = btn.dataset.findingId;
-  const finding = findingDataMap[findingId];
-  if (!finding) return;
-  btn.disabled = true;
-  btn.textContent = "Running...";
-  btn.className = "remediation-btn running";
-  ws.send(JSON.stringify({cmd: "remediate", finding: finding}));
+function onRemediationPlan(data) {
+  const container = _activeRemediationContainer;
+  if (!container) return;
+
+  const steps = data.steps || [];
+  const findingId = data.finding_id;
+
+  if (steps.length === 0) {
+    container.innerHTML = '<div class="rc-step rc-result"><span class="warn">⟐</span> ' + esc(data.note || "No automated remediation available") + '</div>';
+    document.querySelectorAll('.rem-exec-btn[data-finding-id="' + findingId + '"]').forEach(function(b) {
+      b.disabled = false;
+      b.textContent = "N/A";
+      b.className = "rem-exec-btn";
+    });
+    _activeRemediationContainer = null;
+    return;
+  }
+
+  _activeRemediationPlan = data;
+
+  // Render plan preview with each command, Back button, and Apply button
+  var html = '<span id="rem-back-btn" onclick="backToRemList()">← Back to findings list</span>';
+  steps.forEach(function(step, i) {
+    html += '<div class="rc-preview">' +
+      '<div class="rc-preview-header">Step ' + (i+1) + ': ' + esc(step.description || '') + '</div>' +
+      '<div class="rc-preview-cmd"><span class="warn">$</span> ' + esc(step.command || '') + '</div>' +
+    '</div>';
+  });
+  html += '<button class="apply-remediation-btn" id="applyRemBtn" onclick="applyRemediation()">Apply ' + steps.length + ' Command' + (steps.length > 1 ? 's' : '') + '</button>';
+  html += '<div id="rcExecutionOutput"></div>';
+  container.innerHTML = html;
+
+  // Update buttons in remediation tab list
+  document.querySelectorAll('.rem-exec-btn[data-finding-id="' + findingId + '"]').forEach(function(b) {
+    b.textContent = "Plan Ready";
+    b.className = "rem-exec-btn done";
+    b.disabled = false;
+  });
+}
+
+function applyRemediation() {
+  if (!_activeRemediationPlan) return;
+  const container = _activeRemediationContainer;
+  if (!container) return;
+
+  // Remove the Apply button, start execution output
+  var applyBtn = container.querySelector('#applyRemBtn');
+  if (applyBtn) applyBtn.remove();
+
+  var execDiv = container.querySelector('#rcExecutionOutput');
+  if (!execDiv) {
+    execDiv = document.createElement('div');
+    execDiv.id = 'rcExecutionOutput';
+    container.appendChild(execDiv);
+  }
+  execDiv.innerHTML = '<div class="rc-step rc-thinking"><span class="info">⟐</span> Executing remediation...</div>';
+  _cardLastCmdEl = null;
+
+  // Disable all buttons for this finding in remediation tab
+  var findingId = _activeRemediationPlan.finding_id;
+  document.querySelectorAll('.rem-exec-btn[data-finding-id="' + findingId + '"]').forEach(function(b) {
+    b.disabled = true;
+    b.textContent = "Running...";
+    b.className = "rem-exec-btn running";
+  });
+
+  ws.send(JSON.stringify({cmd: "execute_remediation", plan: _activeRemediationPlan}));
+}
+
+function renderRemediationToCard(type, data) {
+  var container = _activeRemediationContainer;
+  if (!container) return;
+
+  // If execution output div exists inside container, append there; else append to container
+  var target = container.querySelector('#rcExecutionOutput');
+  if (!target) target = container;
+
+  if (type === "thinking") {
+    var el = document.createElement('div');
+    el.className = 'rc-step rc-thinking';
+    el.innerHTML = '<span class="info">⟐</span> ' + esc(data.message || "");
+    target.appendChild(el);
+    _cardLastCmdEl = null;
+  } else if (type === "command") {
+    var el = document.createElement('div');
+    el.className = 'rc-step rc-command';
+    el.innerHTML = '<span class="warn">$</span> <code>' + esc(data.command || "") + '</code>';
+    target.appendChild(el);
+    _cardLastCmdEl = el;
+  } else if (type === "output") {
+    var el = document.createElement('div');
+    el.className = 'rc-step rc-output';
+    el.textContent = data.output || "";
+    if (_cardLastCmdEl) {
+      // Insert after the command (or after the last output sibling of that command)
+      var refEl = _cardLastCmdEl;
+      while (refEl.nextSibling && refEl.nextSibling.classList && refEl.nextSibling.classList.contains('rc-output')) {
+        refEl = refEl.nextSibling;
+      }
+      refEl.parentNode.insertBefore(el, refEl.nextSibling);
+    } else {
+      target.appendChild(el);
+    }
+  } else if (type === "result") {
+    var el = document.createElement('div');
+    el.className = 'rc-step rc-result';
+    var txt = typeof data === "object" ? JSON.stringify(data, null, 2) : String(data);
+    el.innerHTML = '<span class="highlight">✓</span> <span class="highlight">' + esc(txt) + "</span>";
+    target.appendChild(el);
+    _cardLastCmdEl = null;
+  }
+
+  target.scrollTop = target.scrollHeight;
 }
 
 function onRemediationComplete(data) {
-  const findingId = data.finding_id;
-  const btn = document.querySelector('.remediation-btn[data-finding-id="' + findingId + '"]');
-  if (!btn) return;
-  btn.disabled = false;
-  const success = data.all_success;
-  if (success) {
-    btn.textContent = "✓ Fixed";
-    btn.className = "remediation-btn done";
-  } else {
-    btn.textContent = "✗ Failed";
-    btn.className = "remediation-btn failed";
+  var findingId = data.finding_id;
+  var success = data.all_success;
+
+  // Update all buttons for this finding in remediation tab
+  document.querySelectorAll('.rem-exec-btn[data-finding-id="' + findingId + '"]').forEach(function(btn) {
+    btn.disabled = false;
+    if (success) {
+      btn.textContent = "✓ Fixed";
+      btn.className = "rem-exec-btn done";
+    } else {
+      btn.textContent = "✗ Failed";
+      btn.className = "rem-exec-btn failed";
+    }
+  });
+
+  // Finalize output with Back button
+  if (_activeRemediationContainer) {
+    var backLink = document.createElement('div');
+    backLink.innerHTML = '<span style="font-size:10px;color:var(--accent-cyan);cursor:pointer" onclick="backToRemList()">← Back to findings list</span>';
+    _activeRemediationContainer.insertBefore(backLink, _activeRemediationContainer.firstChild);
+
+    var el = document.createElement('div');
+    el.className = 'rc-step rc-result';
+    el.innerHTML = '<span class="highlight">✓</span> <span class="highlight">' + (success ? 'Completed successfully' : 'Completed with errors') + '</span>';
+    var target = _activeRemediationContainer.querySelector('#rcExecutionOutput');
+    if (target) target.appendChild(el);
+    else _activeRemediationContainer.appendChild(el);
   }
 
+  // Clear references after a brief delay so user can see final state
+  setTimeout(function() {
+    _activeRemediationContainer = null;
+    _activeRemediationPlan = null;
+    _cardLastCmdEl = null;
+  }, 1000);
+
   // Add to Remediation Activity sidebar
-  const section = document.getElementById("remediationSection");
-  const list = document.getElementById("remediationList");
+  var section = document.getElementById("remediationSection");
+  var list = document.getElementById("remediationList");
   section.style.display = "block";
-  const item = document.createElement("div");
+  var item = document.createElement("div");
   item.className = "remediation-item";
   item.innerHTML =
     '<span class="r-icon">' + (success ? '✓' : '✗') + '</span>' +
@@ -663,6 +1007,10 @@ function onComplete(data) {
 }
 
 function startAudit() {
+  var btn = document.getElementById("execBtn");
+  if (btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = "Auditing...";
   ws.send(JSON.stringify({cmd: "start_audit"}));
   // Reset state
   downloadArea.style.display = "none";
@@ -678,6 +1026,15 @@ function startAudit() {
   document.getElementById("compromisedSection").style.display = "none";
   document.getElementById("compromisedList").innerHTML = "";
   document.querySelectorAll(".phase").forEach(p => { p.classList.remove("active","done"); });
+  // Clear remediation tab state
+  _activeRemediationContainer = null;
+  _activeRemediationPlan = null;
+  _cardLastCmdEl = null;
+  _lastCmdEntry = null;
+  document.getElementById("rem-findings-list").innerHTML = "";
+  document.getElementById("rem-output-area").style.display = "none";
+  var remEmpty = document.getElementById("rem-empty-state");
+  if (remEmpty) remEmpty.style.display = "flex";
   // Keep log but add a separator
   const sep = document.createElement("div");
   sep.style.cssText = "text-align:center;padding:12px;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:2px;border-bottom:1px solid var(--border);margin-bottom:8px";
@@ -851,6 +1208,14 @@ def ws_handler(ws):
                 finding = msg.get("finding")
                 if finding:
                     _start_remediation_background(finding)
+            elif msg.get("cmd") == "plan_remediation":
+                finding = msg.get("finding")
+                if finding:
+                    _start_remediation_plan_background(finding)
+            elif msg.get("cmd") == "execute_remediation":
+                plan = msg.get("plan")
+                if plan:
+                    _start_remediation_execute_background(plan)
     except Exception:
         pass
     finally:
@@ -924,6 +1289,16 @@ def _start_remediation_background(finding):
     thread.start()
 
 
+def _start_remediation_plan_background(finding):
+    thread = threading.Thread(target=_run_remediation_plan, args=(finding,), daemon=True)
+    thread.start()
+
+
+def _start_remediation_execute_background(plan):
+    thread = threading.Thread(target=_run_remediation_execute, args=(plan,), daemon=True)
+    thread.start()
+
+
 def _run_remediation(finding):
     engine = _engine_ref
     if engine is None:
@@ -952,6 +1327,64 @@ def _run_remediation(finding):
         })
     except Exception as e:
         logger.exception("Remediation failed")
+        broadcast({"agent": "system", "type": "error", "data": {"message": f"Remediation execution error: {e}"}})
+
+
+def _run_remediation_plan(finding):
+    engine = _engine_ref
+    if engine is None:
+        broadcast({"agent": "system", "type": "error", "data": {"message": "Engine not initialized"}})
+        return
+
+    claude = engine.analyzer.claude
+    remediator = RemediatorAgent(claude)
+
+    def event_handler(agent_name, event_type, data):
+        broadcast({"agent": agent_name, "type": event_type, "data": data})
+
+    remediator._handlers = []
+    remediator.on_event(event_handler)
+
+    try:
+        plan = remediator.generate_plan(finding)
+        broadcast({
+            "agent": "remediator",
+            "type": "remediation_plan",
+            "data": plan,
+        })
+    except Exception as e:
+        logger.exception("Remediation plan failed")
+        broadcast({"agent": "system", "type": "error", "data": {"message": f"Remediation planning error: {e}"}})
+
+
+def _run_remediation_execute(plan):
+    engine = _engine_ref
+    if engine is None:
+        broadcast({"agent": "system", "type": "error", "data": {"message": "Engine not initialized"}})
+        return
+
+    claude = engine.analyzer.claude
+    remediator = RemediatorAgent(claude)
+
+    def event_handler(agent_name, event_type, data):
+        broadcast({"agent": agent_name, "type": event_type, "data": data})
+
+    remediator._handlers = []
+    remediator.on_event(event_handler)
+
+    try:
+        result = remediator.execute_plan(plan)
+        broadcast({
+            "agent": "system",
+            "type": "remediation_complete",
+            "data": {
+                "finding_id": result.get("finding_id", "unknown"),
+                "status": result.get("status", "unknown"),
+                "all_success": result.get("all_success", False),
+            },
+        })
+    except Exception as e:
+        logger.exception("Remediation execution failed")
         broadcast({"agent": "system", "type": "error", "data": {"message": f"Remediation execution error: {e}"}})
 
 

@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import threading
 from queue import Queue
 from typing import Callable
@@ -8,6 +7,7 @@ from typing import Callable
 from agents.analyzer_agent import AnalyzerAgent
 from agents.enumerator_agent import EnumeratorAgent
 from agents.exploiter_agent import ExploiterAgent
+from agents.remediator_agent import RemediatorAgent
 from agents.reporter_agent import ReporterAgent
 from core.claude_client import ClaudeClient
 
@@ -21,6 +21,7 @@ class AuditEngine:
         self.analyzer = AnalyzerAgent(claude)
         self.exploiter = ExploiterAgent()
         self.reporter = ReporterAgent()
+        self.remediator = RemediatorAgent(claude)
         self.event_queue: Queue = Queue()
         self._running = False
 
@@ -68,6 +69,12 @@ class AuditEngine:
 
         finally:
             self._running = False
+
+    def run_remediation(self, finding: dict, event_handler: Callable) -> dict:
+        self.remediator._handlers = []
+        self.remediator.on_event(event_handler)
+        result = self.remediator.remediate(finding)
+        return result
 
     def get_events(self, block=True, timeout=None) -> dict | None:
         try:

@@ -22,20 +22,37 @@ class EnumeratorAgent(BaseAgent):
         data["host"] = self._enum_host()
         data["media"] = self._enum_media()
 
+        self.emit_thinking("Enumeration complete — all VirtualBox attack surface data has been collected and structured for the analyzer: VM registrations, runtime status, per-VM configurations with attacker-relevant flags, network topology with active scan results, host-level settings, extension packs, USB devices, and mounted media")
         self.emit_result({"status": "complete", "vm_count": len(data["vms"])})
         return data
 
     def _enum_vms(self):
         self.emit_thinking("Enumerating all VM registrations — discovering every virtual machine registered with VirtualBox, including powered-off VMs that could contain sensitive data, credentials, or be booted as lateral movement targets")
         self.emit_command("VBoxManage list vms")
-        vms = self.vbox.list_vms()
+        rc, raw = self.vbox.run("list", "vms")
+        if raw.strip():
+            self.emit_output(raw.strip()[:3000])
+        vms = []
+        for line in raw.splitlines():
+            m = re.match(r'"(.+)"\s+\{(.+)\}', line)
+            if m:
+                vms.append({"name": m.group(1), "uuid": m.group(2)})
         self.emit_output(f"Discovered {len(vms)} VM(s): {', '.join(v['name'] for v in vms)}")
+        if vms:
+            self.emit_output("Parsed VM list ready for detailed configuration audit")
         return vms
 
     def _enum_running_vms(self):
         self.emit_thinking("Identifying running VMs — these are live, active targets that present immediate attack surface and may have network connectivity, open ports, or active user sessions")
         self.emit_command("VBoxManage list runningvms")
-        running = self.vbox.list_running_vms()
+        rc, raw = self.vbox.run("list", "runningvms")
+        if raw.strip():
+            self.emit_output(raw.strip()[:2000])
+        running = []
+        for line in raw.splitlines():
+            m = re.match(r'"(.+)"\s+\{(.+)\}', line)
+            if m:
+                running.append({"name": m.group(1), "uuid": m.group(2)})
         names = [v["name"] for v in running]
         self.emit_output(f"Running ({len(running)}): {', '.join(names) if names else 'none'}")
         return names
@@ -48,8 +65,12 @@ class EnumeratorAgent(BaseAgent):
             self.emit_thinking(f"Probing VM: {name} — extracting full configuration to identify insecure settings that could serve as attacker footholds or data exfiltration channels")
             self.emit_command(f"VBoxManage showvminfo \"{name}\" --machinereadable")
             raw = self.vbox.show_vm_info(name)
+            if raw.strip():
+                self.emit_output("Machine-readable config (first 800 chars):\n" + raw.strip()[:800])
             self.emit_command(f"VBoxManage showvminfo \"{name}\"")
             raw_human = self.vbox.show_vm_info(name, machinereadable=False)
+            if raw_human.strip():
+                self.emit_output("Human-readable config (first 800 chars):\n" + raw_human.strip()[:800])
 
             parsed = self._parse_vm_machine_readable(raw)
 
@@ -117,11 +138,15 @@ class EnumeratorAgent(BaseAgent):
             self.emit_output(f"VM '{name}' flags:\n  " + "\n  ".join(flags))
 
     def _enum_snapshots(self, name: str):
-        self.emit_thinking(f"Checking snapshots for '{name}' — snapshots can contain sensitive data, credentials, or vulnerable software versions that an attacker could revert to or extract data from")
+        self.emit_thinking(f"Checking snapshots for '{name}' — snapshots can contain sensitive data, credentials, or vulnerable software versions that an attacker could revert to or extract data from; each snapshot represents a point-in-time copy of the VM's disk state that may contain credentials, configuration files, or data that should have been cleaned up")
         self.emit_command(f"VBoxManage snapshot \"{name}\" list --machinereadable")
         raw = self.vbox.list_snapshots(name)
         if raw:
-            self.emit_output(f"Snapshots found for {name}")
+            snapshot_lines = [l for l in raw.splitlines() if l.strip()]
+            self.emit_output(f"Snapshots found for {name} ({len(snapshot_lines)} entries)")
+            self.emit_thinking(f"Analyzing snapshot list — {len(snapshot_lines)} snapshot(s) exist for '{name}'; each snapshot increases disk usage and represents a potential data leakage point. An attacker who compromises the host could revert to snapshots containing older, vulnerable software configurations or extract credential material from snapshot disk images")
+        else:
+            self.emit_output(f"No snapshots found for {name} — reduced forensic footprint")
         return raw
 
     def _enum_shared_folders(self, name: str):
@@ -148,6 +173,8 @@ class EnumeratorAgent(BaseAgent):
         self.emit_thinking("Enumerating host-only networks — these isolated segments can be exploited for covert communication between VMs and the host, bypassing network monitoring tools on the primary interface")
         self.emit_command("VBoxManage list hostonlyifs")
         hostonly = self.vbox.list_hostonlyifs()
+        if hostonly.strip():
+            self.emit_output("Host-only interfaces:\n" + hostonly.strip()[:1500])
         self._check_hostonly_dhcp(hostonly)
         net["hostonly"] = hostonly
 
@@ -155,23 +182,29 @@ class EnumeratorAgent(BaseAgent):
         self.emit_command("VBoxManage list bridgedifs")
         bridged = self.vbox.list_bridgedifs()
         if bridged.strip():
-            self.emit_output(f"[!] Bridged networking detected — VMs have direct LAN access")
+            self.emit_output("Bridged adapters:\n" + bridged.strip()[:1500])
         net["bridged"] = bridged
 
         self.emit_thinking("Enumerating NAT networks — checking for port forwarding rules that could expose internal VM services to external networks, creating unintended ingress points into the virtualized environment")
         self.emit_command("VBoxManage list natnets")
         natnets = self.vbox.list_natnets()
+        if natnets.strip():
+            self.emit_output("NAT networks:\n" + natnets.strip()[:1500])
         self._check_nat_port_forwards(natnets)
         net["natnets"] = natnets
 
         self.emit_thinking("Enumerating DHCP servers — active DHCP servers on host-only or internal networks can automatically assign IP addresses to unauthorized VMs, enabling unmanaged devices to join the virtual network")
         self.emit_command("VBoxManage list dhcpservers")
         dhcp = self.vbox.list_dhcpservers()
+        if dhcp.strip():
+            self.emit_output("DHCP servers:\n" + dhcp.strip()[:1000])
         net["dhcp"] = dhcp
 
         self.emit_thinking("Enumerating internal networks — these VM-to-VM networks are invisible to host monitoring tools and can provide attackers with a stealthy communication channel between compromised VMs")
         self.emit_command("VBoxManage list intnets")
         intnets = self.vbox.list_intnets()
+        if intnets.strip():
+            self.emit_output("Internal networks:\n" + intnets.strip()[:1000])
         net["intnets"] = intnets
 
         net["all_raw"] = self.vbox.get_network_info()

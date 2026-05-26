@@ -147,7 +147,13 @@ class AnalyzerAgent(BaseAgent):
         summary = result.get("summary", {})
         exec_summary = result.get("executive_summary", "")
 
-        self.emit_thinking(f"Claude analysis complete: identified {len(findings)} security findings across the VirtualBox attack surface — findings range from critical remote access exposures to informational observations; each finding includes severity rating, CVSS score, remediation steps, attack scenario, and references for manual verification")
+        if summary:
+            sev_counts = {k: summary.get(k, 0) for k in ("critical", "high", "medium", "low", "info")}
+            self.emit_thinking(f"Risk distribution — critical: {sev_counts.get('critical',0)}, high: {sev_counts.get('high',0)}, medium: {sev_counts.get('medium',0)}, low: {sev_counts.get('low',0)}, info: {sev_counts.get('info',0)}")
+            self.emit_thinking(f"Overall risk rating: {summary.get('overall_risk', 'N/A')} — primary attack vectors: {summary.get('primary_attack_vectors', 'N/A')}")
+            self.emit_thinking(f"Highest risk component: {summary.get('highest_risk_component', 'N/A')} — recommended prioritization for remediation")
+
+        self.emit_thinking(f"Claude analysis complete: {len(findings)} security finding(s) identified across the VirtualBox attack surface — findings range from critical remote access exposures to informational observations; each finding includes severity rating, CVSS score, remediation steps, attack scenario, exploitation proof-of-concept, attack chain context, and security references for manual verification")
 
         if summary:
             self.emit("summary_detail", summary)
