@@ -348,17 +348,9 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 <header>
   <div class="logo">
     <div class="logo-icon">
-      <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
-        <defs>
-          <linearGradient id="vba-lg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-            <stop stop-color="#fff" stop-opacity="1"/>
-            <stop offset="1" stop-color="#fff" stop-opacity="0.7"/>
-          </linearGradient>
-        </defs>
-        <rect x="4" y="6" width="24" height="18" rx="3" stroke="url(#vba-lg)" stroke-width="1.5" fill="rgba(255,255,255,0.08)"/>
-        <path d="M16 13v4" stroke="url(#vba-lg)" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="16" cy="10" r="1.2" fill="url(#vba-lg)"/>
-        <path d="M10 20l4-4h4l4 4" stroke="url(#vba-lg)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2l8 4v6c0 5.3-3.2 10.2-8 12-4.8-1.8-8-6.7-8-12V6l8-4z"/>
+        <path d="M9 12l2 2 4-4"/>
       </svg>
     </div>
     <div class="logo-text">VBox<span>Auditor</span></div>
