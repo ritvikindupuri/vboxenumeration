@@ -317,7 +317,7 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .rem-exec-btn.done{background:rgba(0,230,118,.2);color:var(--accent-green);cursor:default}
 .rem-exec-btn.failed{background:rgba(255,23,68,.14);color:var(--accent-red);cursor:default}
 .rem-finding-remediation{font-size:11px;color:var(--accent-green);line-height:1.4;margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.1);border-radius:4px;white-space:pre-wrap}
-#rem-output-area{margin:8px 12px;padding:10px;background:var(--bg-card);border-radius:8px;border:1px solid var(--accent-gold);max-height:none;overflow-y:visible}
+#rem-output-area{margin:8px 12px;padding:10px;background:var(--bg-card);border-radius:8px;border:1px solid var(--accent-gold);flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column}
 
 
 /* In-card remediation output */
@@ -501,20 +501,37 @@ function formatAttackChain(chain) {
 function mdToHtml(text) {
   if (!text) return "";
   var html = esc(text);
-  // **bold**
-  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  // *italic*
-  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
-  // # Headers
-  html = html.replace(/^### (.+)$/gm, "</p><h3>$1</h3><p>");
-  html = html.replace(/^## (.+)$/gm, "</p><h2>$1</h2><p>");
-  html = html.replace(/^# (.+)$/gm, "</p><h2>$1</h2><p>");
-  // Bullet lines: "- " or "* " at line start
   var lines = html.split("\n");
   var out = [];
   var inList = false;
+
   for (var i = 0; i < lines.length; i++) {
     var l = lines[i];
+
+    // Standalone **Section Header** on its own line → <h2>
+    var shMatch = l.match(/^\*\*(.+?)\*\*$/);
+    if (shMatch) {
+      if (inList) { out.push("</ul>"); inList = false; }
+      if (out.length > 0 && out[out.length-1] !== "</p><p>") out.push("</p><p>");
+      out.push("<h2>" + shMatch[1] + "</h2>");
+      continue;
+    }
+
+    // # / ## / ### headers
+    var hashMatch = l.match(/^(#{1,3})\s+(.+)$/);
+    if (hashMatch) {
+      if (inList) { out.push("</ul>"); inList = false; }
+      var tag = hashMatch[1].length === 3 ? "h3" : "h2";
+      if (out.length > 0 && out[out.length-1] !== "</p><p>") out.push("</p><p>");
+      out.push("<" + tag + ">" + hashMatch[2] + "</" + tag + ">");
+      continue;
+    }
+
+    // Inline bold + italic (order: strong first so ** doesn't overlap with *)
+    l = l.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    l = l.replace(/\*(.+?)\*/g, "<em>$1</em>");
+
+    // Bullet lines
     var bulletMatch = l.match(/^[\s]*[-*]\s+(.*)/);
     if (bulletMatch) {
       if (!inList) { out.push("<ul>"); inList = true; }
@@ -782,7 +799,7 @@ function remediateFromTab(findingId) {
 
   // Show output area, hide findings list
   list.style.display = 'none';
-  outputArea.style.display = 'block';
+  outputArea.style.display = 'flex';
   container.innerHTML = '<div style="margin-bottom:6px;font-size:11px;font-weight:600;color:var(--accent-gold)">' + esc(finding.title) + '</div><div class="rc-step rc-thinking"><span class="info">⟐</span> Generating remediation plan...</div>';
   _activeRemediationContainer = container;
   _activeRemediationPlan = null;
