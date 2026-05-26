@@ -449,7 +449,7 @@ PDF / HTML / JSON — appear after audit completes.
 Switch to the **🔧 Remediation** tab and click **Execute Fix** on any finding. The `🔧 Remediator` agent first generates a plan (sends the finding to Claude to convert to VBoxManage commands) and shows a preview with each command. Click **Apply** to execute — streams thinking → commands → raw output → results in real time. Button updates to `✓ Fixed` or `✗ Failed`. Click `← Back to findings list` to return.
 
 ### Tips
-- Install nmap and hydra for enhanced scanning (auto-detected)
+- nmap and hydra are auto-detected — if found, they fire silently when hosts need scanning (you'll see `$ nmap -sV...` commands and output in the log). No "detected at" announcements. If neither is found, you'll see a single note that only Python-based probes will be used.
 - Watch the kill chain turn from `potential` → `confirmed` as the exploiter finds evidence
 - Compromised Hosts panel proves actual access — you see real `whoami`/`hostname` output
 - Run fixes one at a time — each has independent button state tracking
