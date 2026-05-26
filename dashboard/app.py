@@ -82,11 +82,11 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .entry{margin-bottom:4px;padding:8px 12px;border-radius:6px;font-size:13px;line-height:1.5}
 .entry.thinking{background:rgba(255,215,64,.04);border-left:2px solid var(--accent-gold)}
 .entry.command{background:rgba(0,188,212,.04);border-left:2px solid var(--accent-cyan)}
-.entry.output{background:rgba(96,96,128,.04);border-left:2px solid var(--text-dim)}
+.entry.output{background:rgba(0,188,212,.04);border-left:2px solid var(--accent-cyan)}
 .entry.result{background:rgba(0,230,118,.04);border-left:2px solid var(--accent-green)}
 .entry.error{background:rgba(255,23,68,.04);border-left:2px solid var(--accent-red)}
 .entry.finding{background:rgba(0,230,118,.03);border-left:2px solid var(--accent-green);padding:10px 12px}
-.entry.summary_detail{background:rgba(179,136,255,.04);border-left:2px solid var(--accent-purple);padding:10px 12px}
+.entry.summary_detail{background:rgba(255,215,64,.04);border-left:2px solid var(--accent-gold);padding:10px 12px}
 .entry-summary{font-size:13px;line-height:1.7}
 .entry-summary .sum-header{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--accent-purple);margin-bottom:6px}
 .entry-summary .sum-total{font-size:14px;margin-bottom:4px}
@@ -133,7 +133,7 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .entry-msg .danger{color:var(--accent-red)}
 .entry-msg .info{color:var(--accent-cyan)}
 .entry-msg code{background:rgba(255,255,255,.06);padding:1px 5px;border-radius:3px;font-size:12px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold)}
-.cmd-output{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.2);border-radius:4px;font-size:12px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--text-dim);white-space:pre-wrap;word-break:break-word;line-height:1.4}
+.cmd-output{margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.25);border-radius:4px;font-size:12px;font-family:'JetBrains Mono','Fira Code',monospace;color:var(--accent-gold);white-space:pre-wrap;word-break:break-word;line-height:1.4}
 
 /* Empty state */
 #empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--text-dim);text-align:center;padding:40px}
@@ -169,13 +169,6 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .finding-card.info{border-left:3px solid var(--text-dim)}
 .finding-header{display:flex;align-items:center;gap:8px;padding:10px 12px}
 .finding-header:hover{background:rgba(255,255,255,.02)}
-.remediation-list{display:flex;flex-direction:column;gap:4px}
-.remediation-item{display:flex;align-items:center;gap:8px;background:var(--bg-card);border-radius:6px;padding:8px 10px;border:1px solid var(--border);font-size:11px}
-.remediation-item .r-icon{font-size:12px}
-.remediation-item .r-title{flex:1;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.remediation-item .r-status{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
-.remediation-item .r-status.success{color:var(--accent-green)}
-.remediation-item .r-status.failed{color:var(--accent-red)}
 .sev-badge{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:3px}
 .sev-badge.critical{background:rgba(255,23,68,.15);color:var(--accent-red)}
 .sev-badge.high{background:rgba(255,111,60,.15);color:var(--accent-orange)}
@@ -226,7 +219,12 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 
 /* Executive summary area */
 .exec-area{background:var(--bg-card);border-radius:8px;padding:14px;margin-bottom:20px;border:1px solid var(--border)}
-.exec-area .exec-text{font-size:12px;color:var(--text);line-height:1.7}
+.exec-area .exec-text{font-size:12px;color:var(--text);line-height:1.8}
+.exec-area .exec-text strong{color:var(--accent-cyan)}
+.exec-area .exec-text ul{margin:6px 0;padding-left:20px;list-style:disc}
+.exec-area .exec-text li{font-size:12px;color:var(--text);margin-bottom:4px;line-height:1.6}
+.exec-area .exec-text p{margin-bottom:8px}
+.exec-area .exec-text br+br+strong{display:inline-block;margin-top:4px}
 .risk-tag{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;margin-top:8px}
 .risk-tag.critical{background:rgba(255,23,68,.15);color:var(--accent-red)}
 .risk-tag.high{background:rgba(255,111,60,.15);color:var(--accent-orange)}
@@ -318,12 +316,9 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
 .rem-exec-btn.failed{background:rgba(255,23,68,.14);color:var(--accent-red);cursor:default}
 .rem-finding-remediation{font-size:11px;color:var(--accent-green);line-height:1.4;margin-top:4px;padding:4px 8px;background:rgba(0,0,0,.1);border-radius:4px;white-space:pre-wrap}
 #rem-output-area{margin:8px 12px;padding:10px;background:var(--bg-card);border-radius:8px;border:1px solid var(--accent-gold);max-height:none;overflow-y:visible}
-#rem-output-container{font-size:12px}
-#rem-output-container .rc-step{margin-bottom:3px}
-#rem-back-btn{font-size:10px;color:var(--accent-cyan);cursor:pointer;margin-bottom:8px;display:inline-block}
+
 
 /* In-card remediation output */
-.remediation-output{margin-top:8px;border-top:1px solid var(--border);padding-top:8px}
 .rc-step{padding:4px 8px;border-radius:4px;font-size:12px;line-height:1.5;margin-bottom:2px}
 .rc-step.rc-thinking{background:rgba(255,215,64,.04);border-left:2px solid var(--accent-gold)}
 .rc-step.rc-command{background:rgba(0,188,212,.04);border-left:2px solid var(--accent-cyan);font-family:'JetBrains Mono','Fira Code',monospace;font-size:11px}
@@ -467,12 +462,6 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
       </div>
     </div>
 
-    <!-- Remediation History -->
-    <div id="remediationSection" class="sidebar-section" style="display:none">
-      <div class="section-title">Remediation Activity</div>
-      <div id="remediationList"></div>
-    </div>
-
     <!-- Compromised Hosts -->
     <div id="compromisedSection" class="sidebar-section" style="display:none">
       <div class="section-title">Compromised Hosts <span style="font-weight:400;color:var(--accent-green);font-size:8px;letter-spacing:0;text-transform:none">(shell obtained)</span></div>
@@ -505,6 +494,36 @@ function formatAttackChain(chain) {
   return chain.split(/\s*->\s*/).filter(Boolean).map(function(step, i) {
     return '<div class="chain-step"><span class="chain-num">' + (i + 1) + '</span><span class="chain-text">' + esc(step.trim()) + '</span></div>';
   }).join("");
+}
+
+function mdToHtml(text) {
+  if (!text) return "";
+  var html = esc(text);
+  // **bold**
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  // *italic*
+  html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  // Bullet lines: "- " or "* " at line start
+  var lines = html.split("\n");
+  var out = [];
+  var inList = false;
+  for (var i = 0; i < lines.length; i++) {
+    var l = lines[i];
+    var bulletMatch = l.match(/^[\s]*[-*]\s+(.*)/);
+    if (bulletMatch) {
+      if (!inList) { out.push("<ul>"); inList = true; }
+      out.push("<li>" + bulletMatch[1] + "</li>");
+    } else {
+      if (inList) { out.push("</ul>"); inList = false; }
+      if (l.trim() === "") {
+        out.push("</p><p>");
+      } else {
+        out.push(l);
+      }
+    }
+  }
+  if (inList) out.push("</ul>");
+  return "<p>" + out.join("") + "</p>";
 }
 
 // Event queue for slow streaming
@@ -654,7 +673,7 @@ function addEntry(agent, type, data) {
         '<div class="finding-meta">CVSS ' + esc(data.cvss_score || "N/A") + "  ·  " + esc(data.affected_component || "") + "</div>" +
         '<div class="finding-desc">' + esc(data.description || "") + "</div>" +
         (data.exploit_poc ? '<div class="finding-exploit"><span class="finding-label">Exploit PoC</span><pre>' + esc(data.exploit_poc) + "</pre></div>" : "") +
-        (data.attack_chain ? '<div class="finding-chain"><span class="finding-label">Attack Chain</span> ' + esc(data.attack_chain) + "</div>" : "") +
+        (data.attack_chain ? '<div class="finding-chain"><span class="finding-label">Attack Chain</span> ' + formatAttackChain(data.attack_chain) + "</div>" : "") +
         (remSteps ? '<div class="finding-remediation"><span class="finding-label">Remediation</span><br>' + remSteps + "</div>" : "") +
         (data.attack_scenario ? '<div class="finding-attack"><span class="finding-label">Attack Scenario</span> ' + esc(data.attack_scenario) + "</div>" : "") +
       "</div>";
@@ -722,7 +741,7 @@ function renderExecutive(data) {
   var vectorEl = document.getElementById("vectorList");
   if (!section || !textEl) return;
   section.style.display = "block";
-  textEl.textContent = data.executive_summary || "";
+  textEl.innerHTML = mdToHtml(data.executive_summary || "");
   if (riskEl) {
     var risk = (data.overall_risk || "N/A").toLowerCase();
     riskEl.className = "risk-tag " + risk;
@@ -985,18 +1004,6 @@ function onRemediationComplete(data) {
     _activeRemediationPlan = null;
     _cardLastCmdEl = null;
   }, 1000);
-
-  // Add to Remediation Activity sidebar
-  var section = document.getElementById("remediationSection");
-  var list = document.getElementById("remediationList");
-  section.style.display = "block";
-  var item = document.createElement("div");
-  item.className = "remediation-item";
-  item.innerHTML =
-    '<span class="r-icon">' + (success ? '✓' : '✗') + '</span>' +
-    '<span class="r-title">' + esc(findingId) + '</span>' +
-    '<span class="r-status ' + (success ? 'success' : 'failed') + '">' + (success ? 'Fixed' : 'Failed') + '</span>';
-  list.insertBefore(item, list.firstChild);
 }
 
 function onComplete(data) {
@@ -1023,8 +1030,6 @@ function startAudit() {
   execSection.style.display = "none";
   document.getElementById("findingsList").innerHTML = "";
   findingDataMap = {};
-  document.getElementById("remediationSection").style.display = "none";
-  document.getElementById("remediationList").innerHTML = "";
   document.getElementById("killChainSection").style.display = "none";
   document.getElementById("exploitSummarySection").style.display = "none";
   document.getElementById("exploitSummaryContainer").innerHTML = "";
