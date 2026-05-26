@@ -122,9 +122,9 @@ flowchart TB
    - **Phase 7 — Credential Spraying** — Tries 100+ default/weak credential pairs across 11 services (SSH, RDP, SMB, MySQL, PostgreSQL, Redis, Elasticsearch, MongoDB, MSSQL, Oracle, Telnet) using protocol-level authentication (paramiko for SSH, raw MySQL/Redis protocol, etc.). Each credential pair is displayed as a command entry, with results per service.
    - **Phase 8 — Post-Exploitation SSH** — For every discovered SSH credential, **actually connects** via paramiko and runs reconnaissance commands (`whoami`, `hostname`, `id`, `ipconfig`, `netstat -ano`, `tasklist`). Shows each command with `$` prefix. Streams every command and its raw output to the dashboard in real time. Emits a `compromise` event for each successful shell.
 
-**6. Report Generation Phase** — `ReporterAgent` generates JSON, HTML, and PDF reports.
+**6. Report Generation Phase** — `ReporterAgent` generates JSON, HTML, and PDF reports. Reports have a clean header with just the title ("VBoxAuditor") and generation date. The executive summary is rendered as structured markdown with bold section headers and bullet points for readability.
 
-**7. Dashboard Results** — Shows executive summary, kill chain visualization, exploitation summary (probes, confirmed vulns, creds found, hosts compromised), findings grid with expandable cards, Compromised Hosts panel, and download links.
+**7. Dashboard Results** — Shows executive summary (formatted with bold headers, bullet lists, and proper spacing), kill chain visualization, exploitation summary (probes, confirmed vulns, creds found, hosts compromised), findings grid with expandable cards, Compromised Hosts panel, and download links.
 
 **8. Remediation** — User clicks **Execute Fix** on any finding. `RemediatorAgent` spawns in a background thread, sends the finding's remediation text to Claude to convert into `VBoxManage` commands, then executes each step while streaming thinking, commands, raw output, and results.
 
@@ -333,7 +333,7 @@ Open in browser and click 'Execute Audit' to begin
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  [V] VBoxAuditor                     [● Ready] [▲ Execute]  │  ← Header
+│  [◇] VBoxAuditor                     [● Ready] [▲ Execute]  │  ← Header
 ├──────────────────────────┬──────────────────────────────────┤
 │                          │                                  │
 │   📋 Agent Activity Log  │                                  │
@@ -403,16 +403,23 @@ The main panel has two tabs:
 
 #### Agent Activity Log Entries
 
+Each log entry has an **agent badge** (colored label with icon), a **· separator**, and a **timestamp** header. Entries are color-coded by type:
+
+| Entry Type | Left Border | Background | Icon | Description |
+|-----------|-------------|------------|------|-------------|
+| **Thinking** | Gold `#ffd740` | Subtle gold tint | `⟐` | Agent explaining what it's about to do and why |
+| **Command** | Cyan `#00bcd4` | Subtle cyan tint | `$` | Exact command being run (monospace), raw output grouped directly beneath |
+| **Output** | Cyan `#00bcd4` | Subtle cyan tint | — | Raw command output directly under the command, gold monospace text on dark background |
+| **Result** | Green `#00e676` | Subtle green tint | `✓` | Structured result or completion summary |
+| **Error** | Red `#ff1744` | Subtle red tint | `✗` | Error messages |
+| **Finding** | Green `#00e676` | Subtle green tint | — | Security finding with severity badge, CVE, attack chain |
+| **Summary Detail** | Gold `#ffd740` | Subtle gold tint | — | Analysis summary with severity breakdown and risk rating |
+
 - **Phase Indicators**: `01 Enumerate` · `02 Analyze` · `03 Exploit` · `04 Report` — each turns green when complete
-- **Thinking entries** (gold border, `⟐`) — the agent explaining what it's about to do and why (e.g., "Fingerprinting SSH on 192.168.56.101:22 — extracting version from banner and cross-referencing CVE database")
-- **Command entries** (cyan border, `$` monospace) — the exact command being run (VBoxManage, Python exploit probe, nmap, hydra, SSH). Raw output appears directly below in a dark monospace block.
-- **Vulnerability entries** (red border) — `CONFIRMED` or `PROBED` badge with CVE ID, target, and probe output
 - **Shell output entries** (green border) — live command results from compromised SSH sessions: `$ whoami` → `vagrant`, `$ hostname` → `vagrant-vm`, `$ ip addr` → network info
-- **Finding entries** (green border) — severity badge, CVE, exploit PoC, attack chain, remediation
-- **Summary entries** (purple border) — analysis summary with severity breakdown, attack vectors, overall risk
 - **Compromise entries** — rendered in the sidebar panel with structured card display
 
-Agent badges: `🔍 Enumerator` · `🧠 Analyzer` · `⚔ Exploiter` · `📊 Reporter` · `🔧 Remediator` · `⚙️ System`
+Agent badges: `🔍 Enumerator` (orange) · `🧠 Analyzer` (cyan) · `⚔ Exploiter` (red) · `📊 Reporter` (green) · `🔧 Remediator` (gold) · `⚙️ System` (purple)
 
 ### Sidebar (Right Side)
 
