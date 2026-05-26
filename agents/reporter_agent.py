@@ -118,6 +118,10 @@ class ReporterAgent(BaseAgent):
         pdf.set_text_color(*BLACK)
         pdf.cell(0, 14, "VBoxAuditor", align="L")
         pdf.ln(8)
+        pdf.set_font("Helvetica", "", 11)
+        pdf.set_text_color(*DARK)
+        pdf.cell(0, 6, "VirtualBox Attack Surface Audit Report", align="L")
+        pdf.ln(8)
         pdf.set_font("Helvetica", "", 10)
         pdf.set_text_color(*GRAY)
         pdf.cell(0, 6, f"Generated: {report.get('generated_at', '')[:19]}", align="L")
@@ -376,7 +380,7 @@ class ReporterAgent(BaseAgent):
 <body>
 <div class="container">
     <h1>VBoxAuditor</h1>
-    <div class="subtitle">Generated: {report.get('generated_at', '')[:19]}</div>
+    <div class="subtitle">VirtualBox Attack Surface Audit Report &middot; Generated: {report.get('generated_at', '')[:19]}</div>
 
     <h2>Executive Summary</h2>
     <div class="exec-summary">{report.get('executive_summary', 'N/A')}
