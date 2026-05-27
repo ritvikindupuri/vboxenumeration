@@ -456,9 +456,9 @@ header{background:linear-gradient(135deg,#0c0c1e 0%,#0a0a18 100%);border-bottom:
           <div class="check">✓</div>
           <p>Audit Complete — Reports Ready</p>
           <div class="download-buttons">
-            <a class="dl-btn pdf" id="dlPdf" href="#">⬇ PDF Report</a>
-            <a class="dl-btn html" id="dlHtml" href="#">⬇ HTML Report</a>
-            <a class="dl-btn" id="dlJson" href="#">⬇ JSON Report</a>
+            <a class="dl-btn pdf" id="dlPdf" href="#" download>⬇ PDF Report</a>
+            <a class="dl-btn html" id="dlHtml" href="#" download>⬇ HTML Report</a>
+            <a class="dl-btn" id="dlJson" href="#" download>⬇ JSON Report</a>
           </div>
         </div>
       </div>
@@ -1030,16 +1030,20 @@ function onRemediationComplete(data) {
 }
 
 function onComplete(data) {
+  var hasAny = false;
   if (data.pdf_path) {
     document.getElementById("dlPdf").href = "/report/" + encodeURIComponent(data.pdf_path.split(/[\\/]/).pop());
+    hasAny = true;
   }
   if (data.html_path) {
     document.getElementById("dlHtml").href = "/report/" + encodeURIComponent(data.html_path.split(/[\\/]/).pop());
+    hasAny = true;
   }
   if (data.json_path) {
     document.getElementById("dlJson").href = "/report/" + encodeURIComponent(data.json_path.split(/[\\/]/).pop());
+    hasAny = true;
   }
-  downloadArea.style.display = "block";
+  if (hasAny) downloadArea.style.display = "block";
 }
 
 function startAudit() {
