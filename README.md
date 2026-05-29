@@ -333,60 +333,47 @@ Open in browser and click 'Execute Audit' to begin
 
 ### Layout
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  [V] VBoxAuditor                     [● Ready] [▲ Execute]  │  ← Header
-├──────────────────────────┬──────────────────────────────────┤
-│                          │                                  │
-│   📋 Agent Activity Log  │                                  │
-│   🔧 Remediation         │     Preview Summary               │
-│                          │     (hidden until first findings)  │
-│   [01 Enumerate]         │                                  │
-│   [02 Analyze]           │     Kill Chain                   │
-│   [03 Exploit]           │     ▼ Stage 1: Recon ✓          │
-│   [04 Report]            │     ▼ Stage 2: Access ✓         │
-│                          │     ▼ Stage 3: Movement ◇       │
-│   (streaming entries)    │     ▼ Stage 4: PrivEsc ◇       │
-│   w/ agent badges,       │     ▼ Stage 5: Exfil ◇         │
-│   timestamps, thinking,  │                                  │
-│   commands, raw output,  │     Active Exploitation          │
-│   results                │     ⚔ 4 Targets · 2 Vulns       │
-│                          │     💀 1 Host Compromised        │
-│                          │                                  │
-│                          │     Findings Summary             │
-│                          │     ┌───┬───┐                   │
-│                          │     │Ttl│Cri│                   │
-│                          │     ├───┼───┤                   │
-│                          │     │Hi │Med│                   │
-│                          │     ├───┼───┤                   │
-│                          │     │Low│Inf│                   │
-│                          │     └───┴───┘                   │
-│                          │                                  │
-│                          │     Findings                     │
-│                          │     (click to expand)            │
-│                          │     ┌──────────────────┐        │
-│                          │     │[HIGH] VRDE...▶   │        │
-│                          │     ├──────────────────┤        │
-│                          │     │[CRIT] Creds...▶  │        │
-│                          │     ├──────────────────┤        │
-│                          │     │[MED] TPM...▶     │        │
-│                          │     └──────────────────┘        │
-│                          │                                  │
-│                          │     Compromised Hosts 💀         │
-│                          │     ┌──────────────────┐        │
-│                          │     │💀 192.168.56.101 │        │
-│                          │     │vagrant:vagrant   │SHELL   │
-│                          │     │$ whoami vagrant  │        │
-│                          │     │$ hostname vm-01  │        │
-│                          │     └──────────────────┘        │
-│                          │                                  │
-│                          │     Download Reports              │
-│                          │     (hidden until done)           │
-├──────────────────────────┴──────────────────────────────────┤
-│            🔧 Remediation Tab (separate tab)                 │
-│            Finding list → Execute Fix → Plan preview         │
-│            → Apply → Live streaming output → Back            │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Header["Header Layer"]
+        H["[V] VBoxAuditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [● Ready] [▲ Execute]"]
+    end
+
+    subgraph Content["Dashboard Layout"]
+        direction LR
+        subgraph Main["Main Panel (left)"]
+            direction TB
+            Tabs["📋 Agent Activity Log &nbsp;&nbsp;|&nbsp;&nbsp; 🔧 Remediation"]
+            Phases["[01 Enumerate] [02 Analyze] [03 Exploit] [04 Report]"]
+            Log["(streaming entries)<br/>w/ agent badges,<br/>timestamps, thinking,<br/>commands, raw output,<br/>results"]
+            Rem["<b>Remediation Tab (separate)</b><br/>Finding list → Execute Fix → Plan preview<br/>→ Apply → Live streaming output → Back"]
+            Tabs --- Phases --- Log ~~~ Rem
+        end
+
+        subgraph Sidebar["Sidebar (right)"]
+            direction TB
+            S1["Preview Summary<br/>(hidden until first findings)"]
+            S2["Kill Chain<br/>▼ Stage 1: Recon ✓<br/>▼ Stage 2: Access ✓<br/>▼ Stage 3: Movement ◇<br/>▼ Stage 4: PrivEsc ◇<br/>▼ Stage 5: Exfil ◇"]
+            S3["Active Exploitation<br/>⚔ Targets · Vulns<br/>💀 Host Compromised"]
+            S4["Findings Summary Grid<br/>Total | Critical | High | Med | Low | Info"]
+            S5["Findings (expandable)<br/>▶ [HIGH] VRDE...<br/>▶ [CRIT] Creds..."]
+            S6["Compromised Hosts 💀<br/>IP | user:pass | SHELL<br/>$ whoami ..."]
+            S7["Download Reports<br/>(hidden until done)"]
+            S1 --- S2 --- S3 --- S4 --- S5 --- S6 --- S7
+        end
+
+        Main ~~~ Sidebar
+    end
+
+    Header --- Content
+
+    style Header fill:#111128,stroke:#1e1e3a,color:#d0d0e0
+    style H fill:#0c0c1a,stroke:#1e1e3a,color:#00bcd4
+    style Content fill:#07070f,stroke:none,color:#d0d0e0
+    style Main fill:#111128,stroke:#1e1e3a,color:#d0d0e0
+    style Sidebar fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0
+    style Log fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0,text-align:left
+    style Rem fill:#0c0c1a,stroke:#1e1e3a,color:#ffd740
 ```
 
 ### Header Elements
