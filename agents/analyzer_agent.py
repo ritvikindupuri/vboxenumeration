@@ -80,7 +80,7 @@ class AnalyzerAgent(BaseAgent):
             vm_summaries.append({
                 "name": vm["name"],
                 "state": p.get("VMState", "?"),
-                "os": p.get("OSType", "?"),
+                "os": p.get("ostype", p.get("OSType", "?")),
                 "ram": p.get("memory", "?"),
                 "vram": p.get("vram", "?"),
                 "cpus": p.get("cpus", "?"),
@@ -91,14 +91,16 @@ class AnalyzerAgent(BaseAgent):
                 "usb": p.get("usb", "?"),
                 "accelerate3d": p.get("accelerate3d", "?"),
                 "encryption": p.get("encryption", "?"),
-                "tpm": p.get("tpm", "?"),
+                "tpm": p.get("tpm") or None,
                 "firmware": p.get("firmware", "?"),
                 "guest_additions": p.get("GuestAdditionsVersion", p.get("guest_additions", "?")),
                 "snapshot_count": len(vm.get("snapshots", "")) // 50 if vm.get("snapshots") else 0,
                 "shared_folder_count": len(vm.get("shared_folders", "")) // 50 if vm.get("shared_folders") else 0,
                 "network_adapters": [k for k in p if k.startswith("nic") and p[k] not in ("none", "")],
             })
-            self.emit_thinking(f"Analyzing VM: {vm['name']} — examining {vm_summaries[-1]['os']} ({vm_summaries[-1]['state']}) configuration for attacker-relevant weaknesses: VRDE {'ENABLED' if vm_summaries[-1].get('vrde','') == 'on' else 'disabled'}, clipboard: {vm_summaries[-1].get('clipboard','?')}, USB: {'ENABLED' if vm_summaries[-1].get('usb','') == 'on' else 'disabled'}, encryption: {vm_summaries[-1].get('encryption','?')}, TPM: {vm_summaries[-1].get('tpm','?')}")
+            s = vm_summaries[-1]
+            extras = f"TPM: {s.get('tpm','?')}" if s.get('tpm') not in (None, '') else ""
+            self.emit_thinking(f"Analyzing VM: {vm['name']} — examining {s['os']} ({s['state']}) configuration: VRDE {'ENABLED' if s.get('vrde','') == 'on' else 'disabled'}, clipboard: {s.get('clipboard','?')}, USB: {'ENABLED' if s.get('usb','') == 'on' else 'disabled'}, encryption: {s.get('encryption','?')}" + (f", {extras}" if extras else ""))
 
         active_scan = enum_data.get("active_scan", {})
         scan_hosts = []
