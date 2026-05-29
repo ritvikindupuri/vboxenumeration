@@ -115,7 +115,7 @@ flowchart TB
 **4. Analysis Phase** — `AnalyzerAgent` sends all enumeration data (VM configs + active scan results + service banners + version fingerprints) to Claude with a red-team prompt. Claude returns structured findings with severity, CVSS, CVE IDs, exploit PoC commands, Metasploit module paths, attack chain narratives, and remediation steps. Also returns a risk distribution breakdown (critical/high/medium/low/info counts), overall risk rating, highest-risk component, and a **structured executive summary** with four sections: **Attack Surface Overview**, **Key Attack Paths** (bullet list), **Real-World Impact**, and **Remediation Priorities** (bullet list).
 
 **5. Exploitation Phase** — `ExploiterAgent` runs 8 sub-phases (each with proper **thinking → command → raw output → result** streaming):
-   - **Phase 1 — CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes live Python socket-based exploit probes against each target — the actual Python command is displayed (`$ python -c "import socket; ..."`) followed by its raw socket output. If nmap is installed, runs `nmap -sV -sC` with full raw output displayed. If nmap is not installed, the agent extracts version numbers directly from the service banners already collected during the enumeration phase (the initial port scan already grabbed banners like `SSH-2.0-OpenSSH_7.6p1` or `Apache/2.4.49`), so you still get the same CVE matching — just without the extra detail nmap's NSE scripts would provide.
+   - **Phase 1 — CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes live Python socket-based exploit probes against each target — the actual Python command is displayed (`$ python -c "import socket; ..."`) followed by its raw socket output. If nmap is installed, runs `nmap -sV -sC` with full raw output displayed. If nmap is not installed, the agent extracts version numbers directly from the service banners already collected during the enumeration phase (the initial port scan already grabbed banners like `SSH-2.0-OpenSSH_7.6p1` or `Apache/2.4.49`), so you still get the same CVE matching — just without the extra detail nmap's NSE scripts would provide. Note that with live hosts, you'd see the nmap command (`$ nmap -sV -sC --version-intensity 5 -p 22,3389 192.168.56.101`) and the per-CVE exploit commands (e.g., `python3 -c "import socket; ..."` or Metasploit modules). The "No network hosts to probe — skipping" line would not appear; instead, Phase 1 would iterate each host/service, emit the nmap command, and for each CVE match emit the exploit command and probe output. You will only see these commands when there are live hosts to run them against.
    - **Phase 2 — VM Config Attacks** — Per-VM audit of VRDP, clipboard, drag-and-drop, USB, audio, 3D acceleration, serial ports, guest additions with detailed attack technique descriptions for each finding.
    - **Phase 3 — VM Escape Detection** — Queries `VBoxManage --version` and cross-references the installed version against 14 known guest-to-host escape CVEs (CVE-2023-21991, CVE-2022-21489, CVE-2022-21303, CVE-2021-35544, etc.) with version range matching. Each match is emitted as a confirmed vulnerability.
    - **Phase 4 — Guest Addition Exploitation** — Runs `VBoxManage guestproperty enumerate` and `guestcontrol list` against VMs with Guest Additions, extracting OS details, user accounts, network config. Describes host-to-guest command execution and screenshot capture capabilities.
@@ -333,60 +333,47 @@ Open in browser and click 'Execute Audit' to begin
 
 ### Layout
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  [V] VBoxAuditor                     [● Ready] [▲ Execute]  │  ← Header
-├──────────────────────────┬──────────────────────────────────┤
-│                          │                                  │
-│   📋 Agent Activity Log  │                                  │
-│   🔧 Remediation         │     Preview Summary               │
-│                          │     (hidden until first findings)  │
-│   [01 Enumerate]         │                                  │
-│   [02 Analyze]           │     Kill Chain                   │
-│   [03 Exploit]           │     ▼ Stage 1: Recon ✓          │
-│   [04 Report]            │     ▼ Stage 2: Access ✓         │
-│                          │     ▼ Stage 3: Movement ◇       │
-│   (streaming entries)    │     ▼ Stage 4: PrivEsc ◇       │
-│   w/ agent badges,       │     ▼ Stage 5: Exfil ◇         │
-│   timestamps, thinking,  │                                  │
-│   commands, raw output,  │     Active Exploitation          │
-│   results                │     ⚔ 4 Targets · 2 Vulns       │
-│                          │     💀 1 Host Compromised        │
-│                          │                                  │
-│                          │     Findings Summary             │
-│                          │     ┌───┬───┐                   │
-│                          │     │Ttl│Cri│                   │
-│                          │     ├───┼───┤                   │
-│                          │     │Hi │Med│                   │
-│                          │     ├───┼───┤                   │
-│                          │     │Low│Inf│                   │
-│                          │     └───┴───┘                   │
-│                          │                                  │
-│                          │     Findings                     │
-│                          │     (click to expand)            │
-│                          │     ┌──────────────────┐        │
-│                          │     │[HIGH] VRDE...▶   │        │
-│                          │     ├──────────────────┤        │
-│                          │     │[CRIT] Creds...▶  │        │
-│                          │     ├──────────────────┤        │
-│                          │     │[MED] TPM...▶     │        │
-│                          │     └──────────────────┘        │
-│                          │                                  │
-│                          │     Compromised Hosts 💀         │
-│                          │     ┌──────────────────┐        │
-│                          │     │💀 192.168.56.101 │        │
-│                          │     │vagrant:vagrant   │SHELL   │
-│                          │     │$ whoami vagrant  │        │
-│                          │     │$ hostname vm-01  │        │
-│                          │     └──────────────────┘        │
-│                          │                                  │
-│                          │     Download Reports              │
-│                          │     (hidden until done)           │
-├──────────────────────────┴──────────────────────────────────┤
-│            🔧 Remediation Tab (separate tab)                 │
-│            Finding list → Execute Fix → Plan preview         │
-│            → Apply → Live streaming output → Back            │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Header["Header Layer"]
+        H["[V] VBoxAuditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [● Ready] [▲ Execute]"]
+    end
+
+    subgraph Content["Dashboard Layout"]
+        direction LR
+        subgraph Main["Main Panel (left)"]
+            direction TB
+            Tabs["📋 Agent Activity Log &nbsp;&nbsp;|&nbsp;&nbsp; 🔧 Remediation"]
+            Phases["[01 Enumerate] [02 Analyze] [03 Exploit] [04 Report]"]
+            Log["(streaming entries)<br/>w/ agent badges,<br/>timestamps, thinking,<br/>commands, raw output,<br/>results"]
+            Rem["<b>Remediation Tab (separate)</b><br/>Finding list → Execute Fix → Plan preview<br/>→ Apply → Live streaming output → Back"]
+            Tabs --- Phases --- Log ~~~ Rem
+        end
+
+        subgraph Sidebar["Sidebar (right)"]
+            direction TB
+            S1["Preview Summary<br/>(hidden until first findings)"]
+            S2["Kill Chain<br/>▼ Stage 1: Recon ✓<br/>▼ Stage 2: Access ✓<br/>▼ Stage 3: Movement ◇<br/>▼ Stage 4: PrivEsc ◇<br/>▼ Stage 5: Exfil ◇"]
+            S3["Active Exploitation<br/>⚔ Targets · Vulns<br/>💀 Host Compromised"]
+            S4["Findings Summary Grid<br/>Total | Critical | High | Med | Low | Info"]
+            S5["Findings (expandable)<br/>▶ [HIGH] VRDE...<br/>▶ [CRIT] Creds..."]
+            S6["Compromised Hosts 💀<br/>IP | user:pass | SHELL<br/>$ whoami ..."]
+            S7["Download Reports<br/>(hidden until done)"]
+            S1 --- S2 --- S3 --- S4 --- S5 --- S6 --- S7
+        end
+
+        Main ~~~ Sidebar
+    end
+
+    Header --- Content
+
+    style Header fill:#111128,stroke:#1e1e3a,color:#d0d0e0
+    style H fill:#0c0c1a,stroke:#1e1e3a,color:#00bcd4
+    style Content fill:#07070f,stroke:none,color:#d0d0e0
+    style Main fill:#111128,stroke:#1e1e3a,color:#d0d0e0
+    style Sidebar fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0
+    style Log fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0,text-align:left
+    style Rem fill:#0c0c1a,stroke:#1e1e3a,color:#ffd740
 ```
 
 ### Header Elements
