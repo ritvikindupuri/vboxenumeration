@@ -342,6 +342,8 @@ The dashboard is a single-page application served by Flask. All HTML, CSS, and J
 
 The dashboard uses a two-column layout with the main panel on the left and sidebar on the right.
 
+<div align="center">
+
 ```mermaid
 flowchart TB
     subgraph Header["Header Layer"]
@@ -381,6 +383,10 @@ flowchart TB
     style Sidebar fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0
     style Log fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0,text-align:left
 ```
+
+**Figure 6.1: Dashboard Layout Structure**
+
+</div>
 
 ### 6.2 Header
 
@@ -486,6 +492,71 @@ The dashboard uses an event queue system for sequential rendering:
 ### 7.1 Base Agent Architecture
 
 All agents inherit from `BaseAgent` (`agents/base_agent.py`), which provides:
+
+<div align="center">
+
+```mermaid
+classDiagram
+    class BaseAgent {
+        +String name
+        +Logger logger
+        +List~Callable~ _handlers
+        +__init__(name: str)
+        +on_event(handler: Callable)
+        +emit(event_type: str, data: dict)
+        +emit_thinking(message: str)
+        +emit_command(command: str)
+        +emit_output(output: str)
+        +emit_result(result: dict)
+        +run(context: dict) dict
+    }
+
+    class EnumeratorAgent {
+        +VBoxController vbox
+        +run(context: dict) dict
+    }
+
+    class AnalyzerAgent {
+        +ClaudeClient claude
+        +run(context: dict) dict
+    }
+
+    class ExploiterAgent {
+        +VBoxController vbox
+        +Dict _tools
+        +List _compromised_hosts
+        +run(context: dict) dict
+    }
+
+    class ReporterAgent {
+        +run(context: dict) dict
+    }
+
+    class RemediatorAgent {
+        +VBoxController vbox
+        +ClaudeClient claude
+        +generate_plan(finding: dict) dict
+        +execute_plan(plan: dict) dict
+        +remediate(finding: dict) dict
+    }
+
+    BaseAgent <|-- EnumeratorAgent
+    BaseAgent <|-- AnalyzerAgent
+    BaseAgent <|-- ExploiterAgent
+    BaseAgent <|-- ReporterAgent
+    BaseAgent <|-- RemediatorAgent
+
+    style BaseAgent fill:#1e1e3a,stroke:#606080,color:#d0d0e0
+    style EnumeratorAgent fill:#ff6f3c,stroke:#ff6f3c,color:#000
+    style AnalyzerAgent fill:#00bcd4,stroke:#00bcd4,color:#000
+    style ExploiterAgent fill:#ff1744,stroke:#ff1744,color:#fff
+    style ReporterAgent fill:#00e676,stroke:#00e676,color:#000
+    style RemediatorAgent fill:#ffd740,stroke:#ffd740,color:#000
+```
+
+**Figure 7.1: Agent System Class Inheritance and API**
+
+</div>
 
 ```python
 class BaseAgent:
