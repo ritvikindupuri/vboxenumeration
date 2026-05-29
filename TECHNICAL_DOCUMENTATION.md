@@ -487,6 +487,68 @@ The dashboard uses an event queue system for sequential rendering:
 
 All agents inherit from `BaseAgent` (`agents/base_agent.py`), which provides:
 
+<div align="center">
+
+**Figure 7.1: Agent Class Inheritance and Event Emission Flow**
+
+```mermaid
+classDiagram
+    %% Base Agent Definition
+    class BaseAgent {
+        +name: str
+        +on_event(handler: Callable)
+        +emit(event_type: str, data: dict)
+        +emit_thinking(message)
+        +emit_command(command)
+        +emit_output(output)
+        +emit_result(result)
+        +run(context: dict) dict
+    }
+
+    %% Child Agents
+    class EnumeratorAgent {
+        +run(context: dict) dict
+    }
+    class AnalyzerAgent {
+        +run(context: dict) dict
+    }
+    class ExploiterAgent {
+        +run(context: dict) dict
+    }
+    class ReporterAgent {
+        +run(context: dict) dict
+    }
+    class RemediatorAgent {
+        +run(context: dict) dict
+    }
+
+    %% Inheritance
+    BaseAgent <|-- EnumeratorAgent
+    BaseAgent <|-- AnalyzerAgent
+    BaseAgent <|-- ExploiterAgent
+    BaseAgent <|-- ReporterAgent
+    BaseAgent <|-- RemediatorAgent
+
+    %% Event Flow
+    class WebSocket_Client {
+        <<External>>
+    }
+    class Flask_Server {
+        <<External>>
+    }
+    class AuditEngine {
+        <<External>>
+    }
+
+    BaseAgent --> AuditEngine : emit() / emit_*() calls
+    AuditEngine --> Flask_Server : Event Queue / Callback
+    Flask_Server --> WebSocket_Client : Broadcast JSON
+```
+
+</div>
+
+
+
 ```python
 class BaseAgent:
     def __init__(self, name: str):           # Agent identifier
