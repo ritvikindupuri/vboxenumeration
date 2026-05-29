@@ -124,7 +124,7 @@ flowchart TB
    - **Phase 7 — Credential Spraying** — Tries 100+ default/weak credential pairs across 11 services (SSH, RDP, SMB, MySQL, PostgreSQL, Redis, Elasticsearch, MongoDB, MSSQL, Oracle, Telnet) using protocol-level authentication (paramiko for SSH, raw MySQL/Redis protocol, etc.). Each credential pair is displayed as a command entry, with results per service.
    - **Phase 8 — Post-Exploitation SSH** — For every discovered SSH credential, **actually connects** via paramiko and runs reconnaissance commands (`whoami`, `hostname`, `id`, `ipconfig`, `netstat -ano`, `tasklist`). Shows each command with `$` prefix. Streams every command and its raw output to the dashboard in real time. Emits a `compromise` event for each successful shell.
 
-**6. Report Generation Phase** — `ReporterAgent` generates JSON, HTML, and PDF reports. Reports have a clean header with just the title ("VBoxAuditor") and generation date. The executive summary is rendered as structured markdown with bold section headers and bullet points for readability.
+**6. Report Generation Phase** — `ReporterAgent` generates JSON, HTML, and PDF reports. Reports have a clean header with just the title ("VBoxAuditor") and generation date. The executive summary is rendered as structured markdown with bold section headers and bullet points for readability. You can view a [Sample Security Report](#sample-report-virtualbox-attack-surface-audit) at the bottom of this document.
 
 **7. Dashboard Results** — Shows executive summary (formatted with bold headers, bullet lists, and proper spacing), kill chain visualization, exploitation summary (probes, confirmed vulns, creds found, hosts compromised), findings grid with expandable cards, Compromised Hosts panel, and download links.
 
@@ -430,7 +430,7 @@ Appears when post-exploitation succeeds. Per host:
 - All command outputs with `$` prompt styling
 
 #### Download Reports
-PDF / HTML / JSON — appear after audit completes.
+PDF / HTML / JSON — appear after audit completes. If you want to view a sample report, you can view the [Sample Security Report](#sample-report-virtualbox-attack-surface-audit) section below.
 
 ### Running a Fix
 Switch to the **🔧 Remediation** tab and click **Execute Fix** on any finding. The `🔧 Remediator` agent first generates a plan (sends the finding to Claude to convert to VBoxManage commands) and shows a preview with each command. Click **Apply** to execute — streams thinking → commands → raw output → results in real time. Button updates to `✓ Fixed` or `✗ Failed`. Click `← Back to findings list` to return.
@@ -440,3 +440,51 @@ Switch to the **🔧 Remediation** tab and click **Execute Fix** on any finding.
 - Watch the kill chain turn from `potential` → `confirmed` as the exploiter finds evidence
 - Compromised Hosts panel proves actual access — you see real `whoami`/`hostname` output
 - Run fixes one at a time — each has independent button state tracking
+
+---
+
+## Sample Report: VirtualBox Attack Surface Audit
+
+**VBoxAuditor VirtualBox Attack Surface Audit Report** · Generated: 2026-05-29T11:35:44
+
+### Executive Summary
+
+#### Attack Surface Overview
+The VirtualBox environment presents a HIGH risk security posture with 5 significant findings, including 1 high-severity and 2 medium-severity vulnerabilities. The most critical weakness is the complete lack of disk encryption across all VMs, creating a direct path to sensitive data extraction.
+
+#### Key Attack Paths
+* **VM Disk Encryption Disabled:** Direct host-level access to unencrypted VM disks allows credential extraction and data theft without VM compromise.
+* **USB Device Passthrough Enabled:** Ubuntu VM can access host USB devices, enabling data exfiltration and covert communication channels.
+* **Host-Only Network DHCP Server Exposed:** Large DHCP range enables network reconnaissance and man-in-the-middle attacks between VMs.
+* **No VM Snapshots:** Absence of recovery snapshots extends attacker dwell time and complicates incident response.
+
+#### Real-World Impact
+A successful attacker could extract Windows credentials and sensitive data directly from unencrypted VM disks, establish persistent access across multiple VMs through network-based attacks, and maintain long-term presence due to limited recovery options. The combination of these vulnerabilities creates multiple paths for data exfiltration and lateral movement.
+
+#### Remediation Priorities
+* Enable VM disk encryption immediately on all VMs to prevent direct data access.
+* Disable USB passthrough on ubuntu VM unless specifically required for business operations.
+* Reduce DHCP server IP range and implement network segmentation between VMs.
+* Create baseline snapshots for all VMs to enable rapid incident response.
+* Implement comprehensive USB device access controls and monitoring.
+
+### Findings Overview
+
+| Severity | Count |
+|----------|-------|
+| **Critical** | 0 |
+| **High** | 1 |
+| **Medium** | 2 |
+| **Low** | 2 |
+| **Info** | 0 |
+| **Total** | **5** |
+
+### Detailed Findings
+
+| ID | Severity | Title | CVSS | Component | Description | Attack Scenario | Remediation | References |
+|----|----------|-------|------|-----------|-------------|-----------------|-------------|------------|
+| **VBOX-001** | HIGH | VM Disk Encryption Disabled on Running VMs | 7.5 | Windows VM, ubuntu VM | Both running VMs (Windows VM and ubuntu) have disk encryption disabled, storing all VM data in plaintext on the host filesystem. An attacker with host access can directly mount and read VM disk files (.vdi/.vmdk) to extract sensitive data, credentials, and configuration without needing VM access. This bypasses all guest OS security controls and provides immediate access to all VM contents including registry hives, password databases, and user files. | An attacker gains access to the VirtualBox host system through phishing or privilege escalation. They navigate to the VM storage directory and locate the .vdi disk files. Using tools like qemu-nbd or VBoxManage, they mount the unencrypted VM disks directly to the host filesystem. The attacker can then extract Windows SAM/SYSTEM hives, Linux shadow files, SSH keys, browser passwords, and application data without ever powering on the VMs or dealing with guest OS authentication. | 1. Power off VMs: `VBoxManage controlvm "Windows VM" poweroff`<br>2. Enable encryption: `VBoxManage encryptmedium "Windows VM" --newpassword="strong_password" --cipher="AES-XTS256-PLAIN64"`<br>3. Repeat for ubuntu VM<br>4. Store encryption passwords in secure key management system<br>5. Implement host-level disk encryption as additional layer | [VirtualBox Manual: Disk Encryption](https://www.virtualbox.org/manual/ch09.html#diskencryption)<br>[MITRE ATT&CK T1005](https://attack.mitre.org/techniques/T1005/)<br>[Impacket secretsdump](https://github.com/SecureAuthCorp/impacket/blob/master/examples/secretsdump.py) |
+| **VBOX-002** | MEDIUM | USB Device Passthrough Enabled on Ubuntu VM | 6.5 | ubuntu VM | The ubuntu VM has USB device passthrough enabled, allowing the VM to access host USB devices directly. An attacker who compromises the ubuntu VM can access connected USB devices including storage devices, hardware tokens, and input devices. This creates a bridge between the VM and host hardware that can be exploited for data exfiltration, keylogging, or accessing encrypted storage devices that should be isolated from the VM environment. | An attacker compromises the ubuntu VM through a web application vulnerability or SSH brute force attack. Once inside the VM, they discover USB passthrough is enabled and can see host USB devices via lsusb. The attacker writes a script to monitor for USB storage devices and automatically copies sensitive data when devices are connected. They can also access hardware security tokens or USB-based authentication devices, potentially bypassing multi-factor authentication systems intended to protect the host. | 1. Power off ubuntu VM: `VBoxManage controlvm "ubuntu" poweroff`<br>2. Disable USB controller: `VBoxManage modifyvm "ubuntu" --usb off`<br>3. If USB access is required, use specific device filters instead of blanket access<br>4. Monitor USB device access logs<br>5. Implement USB device whitelisting on host | [VirtualBox Manual: USB Settings](https://www.virtualbox.org/manual/ch03.html#settings-usb)<br>[MITRE ATT&CK T1052](https://attack.mitre.org/techniques/T1052/)<br>[MITRE ATT&CK T1200](https://attack.mitre.org/techniques/T1200/) |
+| **VBOX-003** | MEDIUM | Host-Only Network DHCP Server Exposed | 5.8 | VirtualBox Host-Only Network | The VirtualBox host-only network has an active DHCP server running on 192.168.56.100 with a large IP range (192.168.56.101-254). An attacker who gains access to any VM on this network can perform DHCP spoofing attacks, intercept network traffic, or conduct man-in-the-middle attacks against other VMs. The DHCP server also reveals network topology information and can be used to identify and target other VMs on the same host-only network segment. | An attacker compromises one VM on the host-only network and discovers the DHCP server configuration. They set up a rogue DHCP server with a higher priority to intercept DHCP requests from other VMs. When VMs request IP addresses, the attacker's DHCP server responds with malicious DNS servers and gateway configurations. This allows the attacker to intercept all network traffic between VMs, capture credentials, and perform man-in-the-middle attacks on inter-VM communications. | 1. Disable DHCP if not needed: `VBoxManage dhcpserver remove --netname "HostInterfaceNetworking-VirtualBox Host-Only Ethernet Adapter"`<br>2. If DHCP required, reduce IP range: `VBoxManage dhcpserver modify --netname "HostInterfaceNetworking-VirtualBox Host-Only Ethernet Adapter" --lowerip 192.168.56.101 --upperip 192.168.56.110`<br>3. Configure static IPs for VMs instead<br>4. Implement network segmentation between VMs<br>5. Monitor DHCP logs for suspicious activity | [MITRE ATT&CK T1557](https://attack.mitre.org/techniques/T1557/)<br>[VirtualBox Manual: Host-Only Network](https://www.virtualbox.org/manual/ch06.html#network_hostonly)<br>[RFC 2131: DHCP](https://tools.ietf.org/html/rfc2131) |
+| **VBOX-004** | LOW | No VM Snapshots for Incident Response | 3.1 | All VMs | All VMs have zero snapshots configured, eliminating the ability to quickly restore to a known-good state after compromise. This significantly increases recovery time and forensic analysis difficulty during security incidents. Without snapshots, any malware persistence, configuration changes, or data corruption requires full VM rebuilds rather than simple rollbacks, extending attacker dwell time and impact. | An attacker successfully compromises the Windows VM and establishes persistence through registry modifications, scheduled tasks, and malware installation. The security team detects the compromise but realizes there are no clean snapshots available for quick restoration. Instead of a 5-minute snapshot rollback, the team must spend hours rebuilding the VM from scratch, during which time the attacker maintains access and continues lateral movement activities. The extended recovery time allows the attacker to achieve their objectives and cover their tracks. | 1. Create baseline snapshots: `VBoxManage snapshot "Windows VM" take "Clean_Baseline" --description "Pre-production clean state"`<br>2. Implement automated snapshot scheduling before major changes<br>3. Create snapshots before software installations or updates<br>4. Establish snapshot retention policy (keep 3-5 recent snapshots)<br>5. Test snapshot restoration procedures regularly<br>6. Document snapshot naming conventions | [VirtualBox Manual: Snapshots](https://www.virtualbox.org/manual/ch01.html#snapshots)<br>[MITRE ATT&CK T1053](https://attack.mitre.org/techniques/T1053/)<br>[SANS Incident Response](https://www.sans.org/white-papers/33901/) |
+| **VBOX-005** | LOW | Intel USB Controller Device Exposed to Host | 4.3 | Host USB Controller, ubuntu VM | An Intel USB controller device (VendorId: 0x8087, ProductId: 0x0033) is connected to the host and potentially accessible to VMs with USB passthrough enabled. This Intel wireless/Bluetooth controller could be leveraged by an attacker in a compromised VM to perform wireless attacks, intercept Bluetooth communications, or establish covert communication channels that bypass network monitoring. | An attacker compromises the ubuntu VM which has USB passthrough enabled. They discover the Intel USB controller and realize it's a wireless/Bluetooth adapter. The attacker loads wireless drivers in the VM and uses the adapter to scan for nearby wireless networks, potentially discovering hidden SSIDs or performing evil twin attacks. They could also intercept Bluetooth communications from nearby devices or establish a covert wireless communication channel that bypasses the host's network monitoring and firewall rules. | 1. Disable USB passthrough on all VMs unless specifically required<br>2. Use USB device filters to restrict access to specific devices only<br>3. Monitor USB device access logs<br>4. Physically disconnect unnecessary USB devices<br>5. Implement USB device whitelisting policies<br>6. Consider using USB/IP for controlled remote USB access | [MITRE ATT&CK T1200](https://attack.mitre.org/techniques/T1200/)<br>[VirtualBox Manual: USB Settings](https://www.virtualbox.org/manual/ch03.html#settings-usb) |
