@@ -115,6 +115,8 @@ class ReporterAgent(BaseAgent):
     def _generate_pdf(self, report: dict, path: str):
         from fpdf import FPDF
 
+        summary = report.get("summary", {})
+
         BLACK = (0, 0, 0)
         DARK = (30, 30, 30)
         GRAY = (80, 80, 80)
