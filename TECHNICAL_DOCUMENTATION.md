@@ -342,22 +342,44 @@ The dashboard is a single-page application served by Flask. All HTML, CSS, and J
 
 The dashboard uses a two-column layout with the main panel on the left and sidebar on the right.
 
-```
-+------------------------------------------------------------------+
-|  [Logo] VBoxAuditor                  [● Status] [Execute Audit]  |  ← Header
-+-----------------------------------+------------------------------+
-|  Main Panel (left)                |  Sidebar (right, 400px)      |
-|                                   |                              |
-|  [📋 Agent Activity] [🔧 Remed]   |  Executive Summary           |
-|                                   |  Kill Chain                  |
-|  (streaming log entries)          |  Active Exploitation Stats   |
-|   - thinking (gold border)        |  Findings Summary (grid)     |
-|   - command (cyan border)         |  Findings (expandable cards) |
-|   - output (grouped under cmd)    |  Compromised Hosts           |
-|   - result (green)                |  Download Reports            |
-|   - finding (green)               |                              |
-|   - summary_detail (gold)         |                              |
-+-----------------------------------+------------------------------+
+```mermaid
+flowchart TB
+    subgraph Header["Header Layer"]
+        H["[Logo] VBoxAuditor &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [● Status] [Execute Audit]"]
+    end
+
+    subgraph Content["Dashboard Content"]
+        direction LR
+        subgraph Main["Main Panel (left)"]
+            direction TB
+            Tabs["Tabs: [📋 Agent Activity] | [🔧 Remediation]"]
+            Log["Streaming Log Entries<br/>- thinking (gold border)<br/>- command (cyan border)<br/>- output (grouped under cmd)<br/>- result (green)<br/>- finding (green)<br/>- summary_detail (gold)"]
+            Tabs --- Log
+        end
+
+        subgraph Sidebar["Sidebar (right, 400px)"]
+            direction TB
+            S1["Executive Summary"]
+            S2["Kill Chain"]
+            S3["Active Exploitation Stats"]
+            S4["Findings Summary (grid)"]
+            S5["Findings (expandable cards)"]
+            S6["Compromised Hosts"]
+            S7["Download Reports"]
+            S1 --- S2 --- S3 --- S4 --- S5 --- S6 --- S7
+        end
+
+        Main ~~~ Sidebar
+    end
+
+    Header --- Content
+
+    style Header fill:#111128,stroke:#1e1e3a,color:#d0d0e0
+    style H fill:#0c0c1a,stroke:#1e1e3a,color:#00bcd4
+    style Content fill:#07070f,stroke:none,color:#d0d0e0
+    style Main fill:#111128,stroke:#1e1e3a,color:#d0d0e0
+    style Sidebar fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0
+    style Log fill:#0c0c1a,stroke:#1e1e3a,color:#d0d0e0,text-align:left
 ```
 
 ### 6.2 Header
