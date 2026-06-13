@@ -1,5 +1,5 @@
 anthropic>=0.40.0
-python-dotenv>=1.0.0
+python-dotenv==1.2.2
 flask>=3.0.0
 flask-sock>=0.7.0
 gunicorn==26.0.0
