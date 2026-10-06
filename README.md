@@ -10,125 +10,34 @@ VBoxAuditor is a red-team security auditing tool that automatically enumerates, 
 
 ## System Architecture
 
-```mermaid
-flowchart TB
-    subgraph User["User Interface"]
-        Browser[Web Browser - Dashboard]
-    end
-
-    subgraph Server["Flask Server localhost:8080"]
-        HTML[HTML/CSS/JS Dashboard]
-        WS[WebSocket Handler flask-sock]
-        Bcast[Event Broadcaster]
-    end
-
-    subgraph Pipeline["Audit Pipeline Background Thread"]
-        direction LR
-        E[1. Enumerator Agent<br/>Discovers VMs, networks, host config]
-        NS[NetworkScanner<br/>Ping sweep · Port scan<br/>Banner grab · Version fingerprint]
-        Ctx[(Shared Context)]
-        A[2. Analyzer Agent<br/>AI-powered security analysis]
-        X[3. Exploiter Agent<br/>8-phase: CVE probes · VM escape<br/>Guest addons · Shared folders · MITM<br/>Cred spray · SSH post-exploitation]
-        Rp[4. Reporter Agent<br/>JSON / HTML / PDF reports]
-    end
-
-    subgraph ExploitEngine["Exploitation Engine"]
-        CVE[CVE Database<br/>25+ service→CVE mappings]
-        Spray[Credential Sprayer<br/>100+ default creds, 11 services]
-        PE[Post-Exploit Engine<br/>SSH compromise + cmd execution]
-        Tools[Tool Integration<br/>nmap / hydra auto-detection]
-    end
-
-    subgraph Remediation["Remediation Engine Background Thread"]
-        Rm[Remediator Agent<br/>Converts findings to fix commands]
-    end
-
-    subgraph External["External Services"]
-        VBox[Oracle VM VirtualBox<br/>VBoxManage.exe CLI]
-        Claude[Anthropic Claude AI<br/>REST API]
-        FS[File System<br/>Report files in data/]
-    end
-
-    Browser -->|"HTTP GET /"| HTML
-    Browser -->|"WebSocket ws://host/ws"| WS
-    WS -->|"cmd: start_audit"| E
-    E -->|"VBoxManage list/show"| VBox
-    VBox -->|"raw XML/config output"| E
-    E -->|"internal: scan subnets"| NS
-    NS -->|"live hosts + ports + banners"| E
-    E -->|"store enum data"| Ctx
-    Ctx -->|"read enum data"| A
-    A -->|"send for AI analysis"| Claude
-    Claude -->|"findings + summary JSON"| A
-    A -->|"store findings"| Ctx
-    Ctx -->|"read enum + findings"| X
-    X -->|"CVE match + exploit probe"| CVE
-    X -->|"default cred spray"| Spray
-    X -->|"SSH login + commands"| PE
-    X -->|"nmap -sV -sC / hydra"| Tools
-    X -->|"store compromised hosts + kill chain"| Ctx
-    Ctx -->|"read all results"| Rp
-    Rp -->|"write files"| FS
-    E -->|"event stream"| Bcast
-    A -->|"event stream"| Bcast
-    X -->|"event stream"| Bcast
-    Rp -->|"event stream"| Bcast
-    Bcast -->|"real-time JSON: thinking, commands,<br/>vuln probes, shell output,<br/>compromise confirmations, kill chain"| Browser
-
-    Browser -->|"cmd: remediate {finding}"| WS
-    WS -->|"finding object"| Rm
-    Rm -->|"convert remediation to commands"| Claude
-    Claude -->|"VBoxManage command list"| Rm
-    Rm -->|"execute fix"| VBox
-    VBox -->|"command output"| Rm
-    Rm -->|"event stream"| Bcast
-
-    %% ── Color styling ──────────────────────────────────────
-    style Browser fill:#111128,stroke:#1e1e3a,color:#d0d0e0
-    style HTML fill:#111128,stroke:#1e1e3a,color:#d0d0e0
-    style WS fill:#111128,stroke:#1e1e3a,color:#d0d0e0
-    style Bcast fill:#111128,stroke:#1e1e3a,color:#d0d0e0
-    style E fill:#ff6f3c,stroke:#ff6f3c,color:#000
-    style NS fill:#ff6f3c,stroke:#ff6f3c,color:#000
-    style Ctx fill:#1e1e3a,stroke:#606080,color:#d0d0e0
-    style A fill:#00bcd4,stroke:#00bcd4,color:#000
-    style X fill:#ff1744,stroke:#ff1744,color:#fff
-    style Rp fill:#00e676,stroke:#00e676,color:#000
-    style CVE fill:#ff1744,stroke:#ff1744,color:#fff
-    style Spray fill:#ff1744,stroke:#ff1744,color:#fff
-    style PE fill:#ff1744,stroke:#ff1744,color:#fff
-    style Tools fill:#ff1744,stroke:#ff1744,color:#fff
-    style Rm fill:#ffd740,stroke:#ffd740,color:#000
-    style VBox fill:#1e1e3a,stroke:#1e1e3a,color:#d0d0e0
-    style Claude fill:#1e1e3a,stroke:#1e1e3a,color:#d0d0e0
-    style FS fill:#1e1e3a,stroke:#1e1e3a,color:#d0d0e0
-```
+<div align="center">
+  <img src="architecture.png" alt="VBoxAuditor Architecture" width="100%"/>
+  <p><em>Figure 1: VBoxAuditor System Architecture — Component Layers &amp; Pipeline Data Flow</em></p>
+</div>
 
 ### Flow-by-Flow Explanation
 
-**1. Dashboard Load** — The user opens `http://localhost:8080`. Flask serves a single-page dashboard. The browser establishes a WebSocket connection.
+1. **User Dashboard ↔ Flask Backend** — The operator interacts with the web interface (`http://localhost:8080`) to launch audits, track real-time kill chain progress, inspect discovered vulnerabilities, or execute automated remediation. Audit commands are dispatched over HTTP, while execution logs and status events stream live to the browser via WebSocket (`flask-sock`).
 
-**2. Execute Audit** — The user clicks **Execute Audit**. The server spawns a background `AuditEngine` thread. All 4 agents (Enumerator → Analyzer → Exploiter → Reporter) run sequentially, each streaming events in real time.
+2. **Flask Backend → Audit Engine** — When an audit is triggered, the Flask server spawns a background worker thread and initializes the sequential 4-stage `AuditEngine` pipeline (`Start Audit`).
 
-**3. Enumeration Phase** — `EnumeratorAgent` runs `VBoxManage.exe` commands: registered VMs (`list vms`), running VMs (`list runningvms`), deep VM configuration (`showvminfo` — VRDE, clipboard, drag-and-drop, USB, encryption, TPM, firmware, audio, 3D acceleration, guest additions, network adapters), snapshot listing, shared folders, guest properties, network topology (host-only, bridged, NAT, DHCP, internal networks), host profiling (OS, extension packs, USB devices, system properties), and mounted media. **Then performs active network reconnaissance** — ping sweeps host-only subnets, TCP port-scans 30+ common ports on every live host, and grabs service banners.
+3. **Stage 1: Enumeration (EnumeratorAgent ↔ VirtualBox Host)** — The Enumerator queries the local VirtualBox hypervisor using `VBoxManage.exe` commands (`list vms`, `showvminfo`, `list hostonlyifs`, snapshots, shared folders, VRDE settings). It then performs active network reconnaissance across host-only subnets (ping sweeps, TCP port scans, and service banner grabs) to map the complete target attack surface.
 
-**4. Analysis Phase** — `AnalyzerAgent` sends all enumeration data (VM configs + active scan results + service banners + version fingerprints) to Claude with a red-team prompt. Claude returns structured findings with severity, CVSS, CVE IDs, exploit PoC commands, Metasploit module paths, attack chain narratives, and remediation steps. Also returns a risk distribution breakdown (critical/high/medium/low/info counts), overall risk rating, highest-risk component, and a **structured executive summary** with four sections: **Attack Surface Overview**, **Key Attack Paths** (bullet list), **Real-World Impact**, and **Remediation Priorities** (bullet list).
+4. **Stage 2: AI Analysis (AnalyzerAgent ↔ Claude AI)** — The Analyzer submits the full enumeration dataset (VM configs, network topology, and open service banners) to Claude with a red-team prompt. Claude correlates CVEs, assigns CVSS risk scores, constructs attack chains, and produces a structured executive summary. Analysis results stream back to guide exploitation and update the Flask dashboard.
 
-**5. Exploitation Phase** — `ExploiterAgent` runs 8 sub-phases (each with proper **thinking → command → raw output → result** streaming):
-   - **Phase 1 — CVE Probing** — Fingerprints each discovered service against a local database of 25+ service-version → CVE mappings (OpenSSH, Apache, nginx, MySQL, Samba, Redis, Docker, VirtualBox VRDP, etc.). Executes live Python socket-based exploit probes against each target — the actual Python command is displayed (`$ python -c "import socket; ..."`) followed by its raw socket output. If nmap is installed, runs `nmap -sV -sC` with full raw output displayed. If nmap is not installed, the agent extracts version numbers directly from the service banners already collected during the enumeration phase (the initial port scan already grabbed banners like `SSH-2.0-OpenSSH_7.6p1` or `Apache/2.4.49`), so you still get the same CVE matching — just without the extra detail nmap's NSE scripts would provide. Note that with live hosts, you'd see the nmap command (`$ nmap -sV -sC --version-intensity 5 -p 22,3389 192.168.56.101`) and the per-CVE exploit commands (e.g., `python3 -c "import socket; ..."` or Metasploit modules). The "No network hosts to probe — skipping" line would not appear; instead, Phase 1 would iterate each host/service, emit the nmap command, and for each CVE match emit the exploit command and probe output. You will only see these commands when there are live hosts to run them against.
-   - **Phase 2 — VM Config Attacks** — Per-VM audit of VRDP, clipboard, drag-and-drop, USB, audio, 3D acceleration, serial ports, guest additions with detailed attack technique descriptions for each finding.
-   - **Phase 3 — VM Escape Detection** — Queries `VBoxManage --version` and cross-references the installed version against 14 known guest-to-host escape CVEs (CVE-2023-21991, CVE-2022-21489, CVE-2022-21303, CVE-2021-35544, etc.) with version range matching. Each match is emitted as a confirmed vulnerability.
-   - **Phase 4 — Guest Addition Exploitation** — Runs `VBoxManage guestproperty enumerate` and `guestcontrol list` against VMs with Guest Additions, extracting OS details, user accounts, network config. Describes host-to-guest command execution and screenshot capture capabilities.
-   - **Phase 5 — Shared Folder Abuse** — Audits shared folder configurations as bidirectional host-guest filesystem bridges for malware staging and data exfiltration.
-   - **Phase 6 — Network MITM Simulation** — Runs `arp -a` and `route print` with raw output, describes ARP spoofing scenarios on host-only networks, identifies VM network segments for traffic interception.
-   - **Phase 7 — Credential Spraying** — Tries 100+ default/weak credential pairs across 11 services (SSH, RDP, SMB, MySQL, PostgreSQL, Redis, Elasticsearch, MongoDB, MSSQL, Oracle, Telnet) using protocol-level authentication (paramiko for SSH, raw MySQL/Redis protocol, etc.). Each credential pair is displayed as a command entry, with results per service.
-   - **Phase 8 — Post-Exploitation SSH** — For every discovered SSH credential, **actually connects** via paramiko and runs reconnaissance commands (`whoami`, `hostname`, `id`, `ipconfig`, `netstat -ano`, `tasklist`). Shows each command with `$` prefix. Streams every command and its raw output to the dashboard in real time. Emits a `compromise` event for each successful shell.
+5. **Stage 3: Active Exploitation (ExploiterAgent ↔ Security Tools)** — The Exploiter executes an 8-phase automated attack cycle against discovered targets, leveraging local security tooling:
+   - **Nmap (optional)** — Service version detection and deep NSE vulnerability scans.
+   - **Paramiko (SSH)** — Tests 100+ default/weak credentials across 11 services (SSH, RDP, SMB, MySQL, Redis, etc.) and establishes live SSH root shells to prove compromise with real reconnaissance commands.
 
-**6. Report Generation Phase** — `ReporterAgent` generates JSON, HTML, and PDF reports. Reports have a clean header with just the title ("VBoxAuditor") and generation date. The executive summary is rendered as structured markdown with bold section headers and bullet points for readability. You can view a [Sample Security Report](#sample-report-virtualbox-attack-surface-audit) at the bottom of this document.
+6. **Stage 4: Reporting (ReporterAgent → Audit Reports)** — The Reporter aggregates all findings, telemetry, and exploit shell evidence from the audit context. It generates three deliverables saved to disk under `data/`:
+   - `data/vboxaudit_<timestamp>.json` — Complete raw findings and machine-readable data.
+   - `data/vboxaudit_<timestamp>.html` — Interactive dashboard assessment report.
+   - `data/vboxaudit_<timestamp>.pdf` — Formatted executive security audit report.
 
-**7. Dashboard Results** — Shows executive summary (formatted with bold headers, bullet lists, and proper spacing), kill chain visualization, exploitation summary (probes, confirmed vulns, creds found, hosts compromised), findings grid with expandable cards, Compromised Hosts panel, and download links.
+7. **Remediation Planning (Claude AI Integration)** — When an operator clicks **Execute Fix** on a finding in the dashboard, Claude analyzes the vulnerability and synthesizes a step-by-step remediation plan with precise `VBoxManage` hardening commands.
 
-**8. Remediation** — User clicks **Execute Fix** on any finding. `RemediatorAgent` spawns in a background thread, sends the finding's remediation text to Claude to convert into `VBoxManage` commands, then executes each step while streaming thinking, commands, raw output, and results.
+8. **Remediation Execution (RemediatorAgent ↔ VirtualBox Host → Dashboard)** — The Remediator Agent executes the confirmed `VBoxManage` fix commands directly against the VirtualBox environment. It validates execution output, ensures configuration changes take effect, and streams real-time status and logs over WebSocket back through Flask to the User Dashboard.
+
 
 ---
 
